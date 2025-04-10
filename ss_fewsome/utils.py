@@ -197,7 +197,7 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
 
 
     anoms = anoms.sort_values(by='av', ascending =False).reset_index(drop=True)
-    anoms['id'] = anoms['id'].apply(lambda x: data_path + 'train/'+x)
+    anoms['id'] = anoms['id'].apply(lambda x: data_path + '/train/'+x)
 
     anoms['label'].value_counts().to_csv('./outputs/label_details/' + model_name + 'anoms_label.csv'.format(current_epoch))
 

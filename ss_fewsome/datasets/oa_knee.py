@@ -36,19 +36,19 @@ class oa(data.Dataset):
         if (task =='train') :
 
 
-            files = os.listdir(root + 'train/0/')
+            files = os.listdir(root + '/train/0/')
             if (stage == 'ss') | (stage=='stage2') | (stage=='stage_severe_pred'):
                 train_ids = pd.read_csv( train_info_path + 'train_seed_' + str(seed) +'.csv').iloc[:,2].tolist()
-                self.paths = self.paths + [root + 'train/' + ids for ids in train_ids]
+                self.paths = self.paths + [root + '/train/' + ids for ids in train_ids]
                 self.targets = self.targets + ([0]*len(train_ids))
-                self.paths2 = self.paths2 + [root + 'train/' + ids for ids in train_ids]
+                self.paths2 = self.paths2 + [root + '/train/' + ids for ids in train_ids]
                 self.targets2 = self.targets2 + ([0]*len(train_ids))
 
             elif stage =='stage3':
                 train_ids = pd.read_csv( train_info_path + 'train_ids.csv').iloc[:,1].tolist()
-                self.paths = self.paths + [root + 'train/' + ids for ids in train_ids]
+                self.paths = self.paths + [root + '/train/' + ids for ids in train_ids]
                 self.targets = self.targets + ([0]*len(train_ids))
-                self.paths2 = self.paths2 + [root + 'train/' + ids for ids in train_ids]
+                self.paths2 = self.paths2 + [root + '/train/' + ids for ids in train_ids]
                 self.targets2 = self.targets2 + ([0]*len(train_ids))
 
 
@@ -76,28 +76,28 @@ class oa(data.Dataset):
 
 
         elif task == 'test_on_train':
-            files = os.listdir(root + 'train/0/')
+            files = os.listdir(root + '/train/0/')
             folders = ['0','1','2','3','4']
             for folder in folders:
-                    val_files = os.listdir(root + 'train/' + folder)
+                    val_files = os.listdir(root + '/train/' + folder)
                     for f in val_files:
-                         self.paths.append(root+'train/' + folder+ '/' +f)
+                         self.paths.append(root+'/train/' + folder+ '/' +f)
                          self.targets.append(int(folder))
 
         elif task == 'validation':
-            folders = os.listdir(root + 'val/')
+            folders = os.listdir(root + '/val/')
             for folder in folders:
-                    val_files = os.listdir(root + 'val/' + folder)
+                    val_files = os.listdir(root + '/val/' + folder)
                     for f in val_files:
-                        self.paths.append(root+'val/' + folder+ '/' +f)
+                        self.paths.append(root+'/val/' + folder+ '/' +f)
                         self.targets.append(int(folder))
 
         elif task == 'test':
-            folders = os.listdir(root + 'test/')
+            folders = os.listdir(root + '/test/')
             for folder in folders:
-                    val_files = os.listdir(root + 'test/' + folder)
+                    val_files = os.listdir(root + '/test/' + folder)
                     for f in val_files:
-                        self.paths.append(root+'test/' + folder+ '/' + f)
+                        self.paths.append(root+'/test/' + folder+ '/' + f)
                         self.targets.append(int(folder))
 
 

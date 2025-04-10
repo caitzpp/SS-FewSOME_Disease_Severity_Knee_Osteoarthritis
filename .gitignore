@@ -1,0 +1,25 @@
+setup_error.log
+setup_output.log
+
+/myenv/
+data/
+wandb/
+training_logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.ipython/
+.ipynb_checkpoints/
+
+# Editors
+.vscode/
+
+# Logs
+*.log
+
+# Compiled
+*.out
+*.err

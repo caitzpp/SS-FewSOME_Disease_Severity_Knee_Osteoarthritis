@@ -4,7 +4,7 @@ setup_output.log
 /myenv/
 data/
 wandb/
-training_logs/
+Logs/
 
 # Python
 __pycache__/

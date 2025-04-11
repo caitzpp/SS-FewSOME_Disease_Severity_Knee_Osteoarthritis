@@ -11,7 +11,6 @@ source ./myenv/bin/activate
 #python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.version.cuda)"
 cd ./ss_fewsome
 #python main.py --data_path "/home2/c.zuppinger/data/raw/kaggle dataset" --dry_run --device cuda --save_models 2
-python main.py --data_path "../../../data/raw/kaggle dataset" --device cuda --save_models 2 --stage2 0 --stage3 0 --stage_severe_pred 0 --ss_test 0
+#python ~/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py --data_path "../../../data/raw/kaggle dataset" --device cuda --save_models 0 --stage2 0 --stage3 0 --stage_severe_pred 0 --ss_test 0
 
-
-#python main.py --data_path "/home2/c.zuppinger/data/raw/kaggle dataset" --device cuda --save_models 2
+python main.py --data_path "../../../data/raw/kaggle dataset" --device cuda --save_models 0

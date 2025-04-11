@@ -16,6 +16,7 @@ from sklearn.metrics import roc_curve, auc, roc_auc_score, precision_recall_fsco
 from utils import *
 import torch.multiprocessing
 from train import *
+import sys
 #torch.multiprocessing.set_sharing_strategy('file_system')
 
 
@@ -157,8 +158,18 @@ def parse_arguments():
 
 
 if __name__ == '__main__':
+  print("Starting script")
+  sys.stdout.flush()
 
-  args = parse_arguments()
+  try:
+       args = parse_arguments()
+       print(f"Arguments: {args}")
+       sys.stdout.flush()
+  except Exception as e:
+       print("CRITICAL ERROR DURING ARGUMENT PARSING.")
+       print(e)
+       sys.stdout.flush()
+       raise
 
   torch.use_deterministic_algorithms(True, warn_only=True)
   torch.manual_seed(args.seed)
@@ -210,6 +221,8 @@ if __name__ == '__main__':
 
 
   model_name_temp = args.model_name  + '_bs_' + str(args.bs) + '_task_' + str(args.task)+  '_lr_' + str(args.lr)
+  print(f"Temp Model Name: {model_name_temp}")
+  sys.stdout.flush()
   if args.dry_run:
        print("Dry run: loading small batches and doing forward pass...")
        model = ALEXNET_nomax_pre().to(args.device)
@@ -234,16 +247,23 @@ if __name__ == '__main__':
        exit()
 
   if args.train_ss:
+      print("Trying self-supervised Training")
+      sys.stdout.flush()
       model_name_temp_ss = stages[0] + '/' + 'ss_training_' + model_name_temp  + '_N_' + str(args.ss_N)
       print(f"Model Name for temp SS: {model_name_temp_ss}")
+      sys.stdout.flush()
       stage1_path_to_anom_scores, stage1_path_to_logs = ss_training(args, model_name_temp_ss, N=args.ss_N, epochs = TRAIN_PLATEAU_EPOCH, num_ss = args.ss_N, shots=0, self_supervised=1, semi=0, seed = None, eval_epoch = args.eval_epoch)
+      print("Train SS complete")
+      sys.stdout.flush()
   else:
+      print("Using anomaly scores & logs")
+      sys.stdout.flush()
       stage1_path_to_anom_scores = args.stage1_path_to_anom_scores
       stage1_path_to_logs = args.stage1_path_to_logs
 
 
   print_ensemble_results(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
-
+  sys.stdout.flush()
   #stage2 is to DCLR-FewSOME_OA ITER 1
   if args.stage2:
       pseudo_label_ids, margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.stage2_N, model_name_prefix = args.model_name, model_name=stages[2] + '/' + model_name_temp)

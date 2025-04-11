@@ -1,7 +1,8 @@
 #!/bin/bash -l
 #SBATCH -p performance
 #SBATCH -t 03:00:00
-#SBATCH --gpus=1
+#SBATCH --gpus=2
+#SBATCH --cpus-per-task=4
 #SBATCH --job-name=Experiment
 #SBATCH --output=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Logs/training_%j.out     # Save stdout to file
 #SBATCH --error=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Errors/training_%j.err      # Save stderr to file

@@ -97,6 +97,7 @@ def parse_arguments():
     parser.add_argument('--task', type=str, default='test')
     parser.add_argument('--eval_epoch', type=int, default=1)
     parser.add_argument('--data_path', type=str, default='./data/')
+    parser.add_argument('--dry-run', action= 'store_true')
     parser.add_argument('--model_name', type=str, default='mod_1')
     parser.add_argument('--augmentations', type=str, default="crop, cutpaste")
     parser.add_argument('--normal_augs', type=str, default="sharp, bright, jitter")
@@ -203,6 +204,28 @@ if __name__ == '__main__':
 
 
   model_name_temp = args.model_name  + '_bs_' + str(args.bs) + '_task_' + str(args.task)+  '_lr_' + str(args.lr)
+  if args.dry_run:
+       print("Dry run: loading small batches and doing forward pass...")
+       model = ALEXNET_nomax_pre().to(args.device)
+
+       args.bs = 1
+       index = 0
+       seed_temp = 123
+       
+       train_set = oa(args.data_path, task='train', stage='ss', N = args.ss_N, shots = 0, semi = 0, self_supervised = 1, num_ss = args.ss_N, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = None)
+       img1, img2, labels, base, _, _  = train_set.__getitem__(index, seed_temp)
+
+       # Forward Loop
+       img1 = img1.to(args.device)
+       img2 = img2.to(args.device)
+
+       labels = labels.to(args.device)
+
+       with torch.no_grad():
+            output1 = model.forward(img1.float())
+            output2 = model.forward(img2.float())
+       print(f"Forward pass shape - Output 1: {output1.shape}\n Output 2: {output2.shape}")
+       exit()
 
   if args.train_ss:
       model_name_temp_ss = stages[0] + '/' + 'ss_training_' + model_name_temp  + '_N_' + str(args.ss_N)

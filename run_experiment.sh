@@ -9,4 +9,5 @@
 cd /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis
 source ./myenv/bin/activate
 cd ./ss_fewsome
+#python main.py --device cpu --data_path "/home2/c.zuppinger/data/raw/kaggle dataset" --save_models 2
 python main.py --data_path "/home2/c.zuppinger/data/raw/kaggle dataset" --save_models 2

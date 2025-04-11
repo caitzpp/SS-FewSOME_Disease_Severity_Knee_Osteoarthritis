@@ -16,7 +16,7 @@ from sklearn.metrics import roc_curve, auc, roc_auc_score, precision_recall_fsco
 from utils import *
 import torch.multiprocessing
 from train import *
-torch.multiprocessing.set_sharing_strategy('file_system')
+#torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 

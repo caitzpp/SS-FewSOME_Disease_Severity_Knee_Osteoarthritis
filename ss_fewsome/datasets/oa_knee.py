@@ -120,12 +120,22 @@ class oa(data.Dataset):
 
         if index >= len(self.paths): #shots
             target = torch.FloatTensor([self.targets2[index]])
-            img = torch.FloatTensor(np.asarray(Image.open(self.paths2[index]) ).copy() ) / 255
+            try:
+                img = Image.open(self.paths2[index])
+            except Exception as e:
+                print(f"[ERROR] Failed to load image at index {index}: {self.paths2[index]}")
+                raise e
+            img = torch.FloatTensor(np.asarray(img ).copy() ) / 255
             file=self.paths2[index]
 
         else:
             target = torch.FloatTensor([self.targets[index]])
-            img = torch.FloatTensor(np.asarray(Image.open(self.paths[index]) ).copy() ) / 255
+            try:
+                img = Image.open(self.paths[index])
+            except Exception as e:
+                print(f"[ERROR] Failed to load image at index {index}: {self.paths[index]}")
+                raise e
+            img = torch.FloatTensor(np.asarray(img ).copy() ) / 255
             file=self.paths[index]
 
 
@@ -176,19 +186,34 @@ class oa(data.Dataset):
 
             if self.semi ==1 :
                     target2 = torch.FloatTensor([self.targets2[ind]])
-                    img2 = torch.FloatTensor(np.asarray ( Image.open(self.paths2[ind]) ).copy() ) / 255
+                    try:
+                        img2 = Image.open(self.paths2[ind])
+                    except Exception as e:
+                        print(f"[ERROR] Failed to load image at index {index}: {self.paths2[ind]}")
+                        raise e
+                    img2 = torch.FloatTensor(np.asarray ( img2 ).copy() ) / 255
                     img2 = torch.stack((img2,img2,img2),0)
 
             else:
                 if ind >= len(self.targets):
                     target2 = torch.FloatTensor([1])
                     i2=random.sample(range(0, len(self.targets)), 1)[0]
-                    img2 = np.asarray ( Image.open(self.paths[i2]) ).copy()
+                    try:
+                        img2 = Image.open(self.paths[i2])
+                    except Exception as e:
+                        print(f"[ERROR] Failed to load image at index {index}: {self.paths[i2]}")
+                        raise e
+                    img2 = np.asarray ( img2).copy()
                     img2 = transform_function(self.augmentations, img2)
 
                 else:
                     target2 = torch.FloatTensor([self.targets[ind]])
-                    img2 = torch.FloatTensor(np.asarray ( Image.open(self.paths[ind]) ).copy() ) / 255
+                    try:
+                        img2 = Image.open(self.paths[ind])
+                    except Exception as e:
+                        print(f"[ERROR] Failed to load image at index {index}: {self.paths[ind]}")
+                        raise e
+                    img2 = torch.FloatTensor(np.asarray ( img2 ).copy() ) / 255
                     img2 = torch.stack((img2,img2,img2),0)
 
             if isinstance(img2, tuple):

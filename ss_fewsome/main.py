@@ -25,9 +25,12 @@ SEVERE_PRED_EPOCH = 990
 
 def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervised, semi, seed = None, eval_epoch = 1): #trains the model and evaluates every 10 epochs for all seeds OR trains the model for a specific number of epochs for specified seed
 
+  print("Trying to load val_dataset")
   val_dataset =  oa(args.data_path, task = 'test_on_train', train_info_path = args.train_ids_path)
+  print("Val Dataset Loaded")
   if args.ss_test:
       test_dataset =  oa(args.data_path, task = args.task)
+      print("ss_test working, test_dataset loaded")
   else:
       test_dataset = None
 
@@ -39,7 +42,10 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
   current_epoch = 0
   for seed in seeds:
       model = ALEXNET_nomax_pre().to(args.device)
+      print("Model loaded!")
       train_dataset =  oa(args.data_path, task='train', stage='ss', N = N, shots = shots, semi = semi, self_supervised = self_supervised, num_ss = num_ss, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = seed)
+      print(f"Training with {len(train_dataset)} samples")
+      #print(f"First 5 paths:" {train_dataset.paths[:5]})
       train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset )
       del model
 
@@ -97,7 +103,7 @@ def parse_arguments():
     parser.add_argument('--task', type=str, default='test')
     parser.add_argument('--eval_epoch', type=int, default=1)
     parser.add_argument('--data_path', type=str, default='./data/')
-    parser.add_argument('--dry-run', action= 'store_true')
+    parser.add_argument('--dry_run', action= 'store_true')
     parser.add_argument('--model_name', type=str, default='mod_1')
     parser.add_argument('--augmentations', type=str, default="crop, cutpaste")
     parser.add_argument('--normal_augs', type=str, default="sharp, bright, jitter")
@@ -211,8 +217,8 @@ if __name__ == '__main__':
        args.bs = 1
        index = 0
        seed_temp = 123
-       
-       train_set = oa(args.data_path, task='train', stage='ss', N = args.ss_N, shots = 0, semi = 0, self_supervised = 1, num_ss = args.ss_N, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = None)
+
+       train_set = oa(args.data_path, task='train', stage='ss', N = args.ss_N, shots = 0, semi = 0, self_supervised = 1, num_ss = args.ss_N, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = 1001)
        img1, img2, labels, base, _, _  = train_set.__getitem__(index, seed_temp)
 
        # Forward Loop
@@ -229,6 +235,7 @@ if __name__ == '__main__':
 
   if args.train_ss:
       model_name_temp_ss = stages[0] + '/' + 'ss_training_' + model_name_temp  + '_N_' + str(args.ss_N)
+      print(f"Model Name for temp SS: {model_name_temp_ss}")
       stage1_path_to_anom_scores, stage1_path_to_logs = ss_training(args, model_name_temp_ss, N=args.ss_N, epochs = TRAIN_PLATEAU_EPOCH, num_ss = args.ss_N, shots=0, self_supervised=1, semi=0, seed = None, eval_epoch = args.eval_epoch)
   else:
       stage1_path_to_anom_scores = args.stage1_path_to_anom_scores

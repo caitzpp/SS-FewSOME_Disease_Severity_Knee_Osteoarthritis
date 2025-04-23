@@ -17,14 +17,23 @@ wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tg
 tar xzf Python-$PYTHON_VERSION.tgz
 cd Python-$PYTHON_VERSION
 
-./configure --prefix=$INSTALL_DIR --enable-optimizations
+./configure --prefix=$INSTALL_DIR --enable-optimizations --with-openssl=/usr
 make -j4
 make install
 
+$HOME/python-3.11.8/bin/python3.11 -m ssl
+
+PYTHON_BIN=$HOME/python-3.11.8/bin/python3.11
+
 cd /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis
-$INSTALL_DIR/bin/python3.11 -m venv myenv
+
+if [ ! -d "myenv" ]; then
+    $PYTHON_BIN -m venv myenv
+fi
+
+# $INSTALL_DIR/bin/python3.11 -m venv myenv
 #python3 -m venv myenv
 source myenv/bin/activate
 
-pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt

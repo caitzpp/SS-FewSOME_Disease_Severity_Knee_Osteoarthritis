@@ -17,7 +17,7 @@ from utils import *
 import torch.multiprocessing
 from train import *
 import sys
-#torch.multiprocessing.set_sharing_strategy('file_system')
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 
@@ -27,11 +27,14 @@ SEVERE_PRED_EPOCH = 990
 def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervised, semi, seed = None, eval_epoch = 1): #trains the model and evaluates every 10 epochs for all seeds OR trains the model for a specific number of epochs for specified seed
 
   print("Trying to load val_dataset")
+  sys.stdout.flush()
   val_dataset =  oa(args.data_path, task = 'test_on_train', train_info_path = args.train_ids_path)
   print("Val Dataset Loaded")
+  sys.stdout.flush()
   if args.ss_test:
       test_dataset =  oa(args.data_path, task = args.task)
       print("ss_test working, test_dataset loaded")
+      sys.stdout.flush()
   else:
       test_dataset = None
 
@@ -44,11 +47,17 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
   for seed in seeds:
       model = ALEXNET_nomax_pre().to(args.device)
       print("Model loaded!")
+      sys.stdout.flush()
       train_dataset =  oa(args.data_path, task='train', stage='ss', N = N, shots = shots, semi = semi, self_supervised = self_supervised, num_ss = num_ss, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = seed)
       print(f"Training with {len(train_dataset)} samples")
+      sys.stdout.flush()
       #print(f"First 5 paths:" {train_dataset.paths[:5]})
       train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset )
+      print("Training Done")
+      sys.stdout.flush()
       del model
+      print("Model Deleted")
+      sys.stdout.flush()
 
   return './outputs/dfs/ss/', './outputs/logs/ss/'
 

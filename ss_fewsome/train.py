@@ -25,14 +25,14 @@ class ContrastiveLoss(torch.nn.Module):
 
         sim = torch.nn.CosineSimilarity()(output1, output2).to(self.device)
         print(f"Cosine Similarity: {sim}")
-        sys.stdout.flush()
+         
         dist = 1-sim
         dist = torch.clip(dist, min=0,max=1)
         print(f"Distance: {dist}")
-        sys.stdout.flush()
+         
         loss_contrastive = torch.nn.BCELoss()(dist, label)
         print(f"Contrastive Loss: {loss_contrastive}")
-        sys.stdout.flush()
+         
         assert loss_contrastive.requires_grad == True
         return loss_contrastive
 
@@ -56,14 +56,11 @@ def centre_sim(padding, patchsize, stride, ref_dataset, model, dev, shots):
 def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name, args, current_epoch=0, metric='centre_mean', patches = True, test_dataset = None):
 
   optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.1)
-  print("Optimizer loaded")
-  sys.stdout.flush()
   train_indexes = list(range(0, train_dataset.__len__()))
   print(f"Length Train Dataset {train_dataset.__len__()}")
-  sys.stdout.flush()
   criterion = ContrastiveLoss(args.device)
   print("Criterion loaded")
-  sys.stdout.flush()
+
 
   train_losses = []
   train_aucs=[]
@@ -95,13 +92,12 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
   for epoch in range(epochs+1):
       print(f"Beginning with epoch: {epoch}")
-      sys.stdout.flush()
+       
 
       train_preds = []
       train_labels=[]
       loss_sum = 0
       print("Starting epoch " + str(epoch+1))
-      sys.stdout.flush()
       np.random.seed(epoch*seed)
       np.random.shuffle(train_indexes)
 
@@ -109,12 +105,10 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
       for batch_ind in range(len(batches)):
           print(f"Batch Index: {batch_ind}")
-          sys.stdout.flush()
 
           iterations=0
           for inbatch_ind,index in enumerate(batches[batch_ind]):
               print("Starting Model Train")
-              sys.stdout.flush()
               model.train()
               iterations+=1
               seed_temp = (epoch+1) * (inbatch_ind+1) * (batch_ind+1)
@@ -129,14 +123,14 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
               train_labels.append(torch.max(labels).detach().cpu().numpy())
               output1 = model.forward(img1.float())
               output2 = model.forward(img2.float())
-              print(f"Output 1 Shape: {output1.shape}")
-              print(f"Output 2 Shape: {output2.shape}")
-              sys.stdout.flush()
+            #   print(f"Output 1 Shape: {output1.shape}")
+            #   print(f"Output 2 Shape: {output2.shape}")
+               
 
 
               if patches:
                   print(f"Creating patches")
-                  sys.stdout.flush()
+                   
                   output1 = create_patches(output1, args.padding,args.patchsize, args.stride)
                   output1=F.adaptive_avg_pool2d(output1, (1,1) )[:,:,0,0].squeeze(1)
                   output2 = create_patches(output2, args.padding,args.patchsize, args.stride)
@@ -144,11 +138,11 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
                   if not torch.all(torch.isfinite(output1)):
                       print("Model output 1 contains NaNs or Infs")
-                      sys.stdout.flush()
+                       
                       continue
                   if not torch.all(torch.isfinite(output2)):
                       print("Model output2 contains NaNs or Infs")
-                      sys.stdout.flush()
+                       
                       continue
 
                   if len(labels) == 1:
@@ -166,61 +160,53 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
               dist = 1-torch.nn.CosineSimilarity()(output1, output2)
               train_preds.append(torch.max(dist).detach().cpu().numpy())
-              print("Train predictions appended")
-              sys.stdout.flush()
 
-
-          print("Adding Loss Sum")
-          sys.stdout.flush()
-          print(f"Loss tensor: {loss}, shape: {loss.shape}, dtype: {loss.dtype}, device: {loss.device}")
-          sys.stdout.flush()
+           
 
           if not torch.isfinite(loss):
               print(f"Non-finite Loss detected")
-              sys.stdout.flush()
+               
               continue
 
           if loss.numel() == 1:
             loss_value = loss.item()
             loss_sum += loss_value / iterations
-            print(f"Loss Sum: {loss_sum}")
-            sys.stdout.flush()
+            # print(f"Loss Sum: {loss_sum}")
           else:
-            print("Loss tensor has more than one element — skipping loss.item()")
-            sys.stdout.flush()
+            # print("Loss tensor has more than one element — skipping loss.item()")
             continue
 
           # Backward and optimize
           optimizer.zero_grad()
           print("Zero grad done")
-          sys.stdout.flush()
+           
 
-          #loss.backward(retain_graph=True)
-          try:
-                with torch.autograd.set_detect_anomaly(True):
-                    loss.backward()  # Try without retain_graph
-                    print("Backward done")
-                    sys.stdout.flush()
-          except Exception as e:
-                print("CRASH DURING BACKWARD:", e)
-                sys.stdout.flush()
-                #torch.cuda.empty_cache()
-                continue
+          loss.backward(retain_graph=True)
+        #   try:
+        #         with torch.autograd.set_detect_anomaly(True):
+        #             loss.backward()  # Try without retain_graph
+        #             print("Backward done")
+                     
+        #   except Exception as e:
+        #         print("CRASH DURING BACKWARD:", e)
+                 
+        #         #torch.cuda.empty_cache()
+        #         continue
 
           optimizer.step()
 
           torch.cuda.empty_cache()
           print("Cache GPU emptied")
-          sys.stdout.flush()
+           
 
 
       fpr, tpr, thresholds = roc_curve(train_labels ,train_preds)
       train_auc = auc(fpr, tpr)
       print('Train AUC is {}'.format(train_auc))
-      sys.stdout.flush()
+       
       train_losses.append((loss_sum / len(batches)))
       print("Epoch: {}, Train loss: {}".format(epoch+1, train_losses[-1]))
-      sys.stdout.flush()
+       
 
 
       if eval_epoch == 1:
@@ -347,4 +333,4 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
 
   print("Finished Training")
-  sys.stdout.flush()
+   

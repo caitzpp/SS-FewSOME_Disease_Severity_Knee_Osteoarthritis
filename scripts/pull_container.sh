@@ -8,7 +8,13 @@
 SIF_FILENAME="my-python311-env.sif"
 DOCKER_IMAGE="docker://caitlynzuppinger/my-python311-env:latest"
 
-module load singularity  # or apptainer, depending on your cluster
+#TODO: Still to be tested. Did it using srun with
+#srun --partition performance --mem=8G --time=03:00:00 --pty bash
+
+
+# export SINGULARITY_TMPDIR=$HOME/tmp
+# export SINGULARITY_CACHEDIR=$HOME/.singularity
+# singularity pull my-python311-env.sif docker://caitlynzuppinger/my-python311-env:latest
 
 # Pull only if not already present
 if [ ! -f "$SIF_FILENAME" ]; then

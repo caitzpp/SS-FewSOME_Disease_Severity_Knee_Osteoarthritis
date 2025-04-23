@@ -59,7 +59,7 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
       print("Model Deleted")
       sys.stdout.flush()
 
-  return './outputs/dfs/ss/', './outputs/logs/ss/'
+  return os.path.join(args.dir_path, 'outputs/dfs/ss/'), os.path.join(args.dir_path, 'outputs/logs/ss/')
 
 
 
@@ -89,9 +89,9 @@ def dclr_training(args, model_temp_name_stage, stage, pseudo_label_ids, epochs, 
             ep=current_epoch
         train(train_dataset, val_dataset, N, model, epochs, seed, args.eval_epoch, shots, model_temp_name_stage + '_seed_' + str(seed) +  '_N_' + str(N), args, ep, metric='w_centre', patches = False, test_dataset = test_dataset )
         del model
-    current_epoch = get_best_epoch('./outputs/logs/' + stage + '/', last_epoch = current_epoch, metric='ref_centre', model_prefix = model_prefix)
+    current_epoch = get_best_epoch(os.path.join(args.dir_path, 'outputs/logs/') + stage + '/', last_epoch = current_epoch, metric='ref_centre', model_prefix = model_prefix)
 
-    return current_epoch, './outputs/dfs/' + stage + '/'
+    return current_epoch, os.path.join(args.dir_path, 'outputs/dfs/') + stage + '/'
 
 
 def parse_arguments():
@@ -109,7 +109,7 @@ def parse_arguments():
     parser.add_argument('--lr', type=float, default=1e-6)
     parser.add_argument('--bs', type=int, default=1)
     parser.add_argument('--k', type=int, default=1)
-    parser.add_argument('--train_ids_path', type=str, default='../meta/')
+    parser.add_argument('--train_ids_path', type=str, default='/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta/')
     parser.add_argument('--task', type=str, default='test')
     parser.add_argument('--eval_epoch', type=int, default=1)
     parser.add_argument('--data_path', type=str, default='./data/')
@@ -119,16 +119,19 @@ def parse_arguments():
     parser.add_argument('--normal_augs', type=str, default="sharp, bright, jitter")
     parser.add_argument('--seed', type=int, default=1001)
 
+    #path of directory
+    parser.add_argument('--dir_path', type=str, default='/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome')
+
 
     #details of data if not running train_ss
-    parser.add_argument('--stage1_path_to_anom_scores', type=str, default = './outputs/dfs/ss/')
-    parser.add_argument('--stage_severe_path_to_anom_scores', type=str, default = './outputs/dfs/stage_severe_pred/')
-    parser.add_argument('--stage2_path_to_anom_scores', type=str, default = './outputs/dfs/stage2/')
-    parser.add_argument('--stage3_path_to_anom_scores', type=str, default = './outputs/dfs/stage3/')
-    parser.add_argument('--stage1_path_to_logs', type=str, default = './outputs/logs/ss/')
-    parser.add_argument('--stage_severe_path_to_logs', type=str, default = './outputs/logs/stage_severe_pred/')
-    parser.add_argument('--stage2_path_to_logs', type=str, default = './outputs/logs/stage2/')
-    parser.add_argument('--stage3_path_to_logs', type=str, default = './outputs/logs/stage3/')
+    parser.add_argument('--stage1_path_to_anom_scores', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/dfs/ss/')
+    parser.add_argument('--stage_severe_path_to_anom_scores', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/dfs/stage_severe_pred/')
+    parser.add_argument('--stage2_path_to_anom_scores', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/dfs/stage2/')
+    parser.add_argument('--stage3_path_to_anom_scores', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/dfs/stage3/')
+    parser.add_argument('--stage1_path_to_logs', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/logs/ss/')
+    parser.add_argument('--stage_severe_path_to_logs', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/logs/stage_severe_pred/')
+    parser.add_argument('--stage2_path_to_logs', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/logs/stage2/')
+    parser.add_argument('--stage3_path_to_logs', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/logs/stage3/')
 
 
     #epochs and N for each stage
@@ -153,7 +156,7 @@ def parse_arguments():
 
     parser.add_argument('--save_models', type=int, default=0)
     parser.add_argument('--save_anomaly_scores', type=int, default=1)
-    parser.add_argument('--meta_data_dir', type=str, default = '../meta/kxr_sq_bu00.txt' )
+    parser.add_argument('--meta_data_dir', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta/kxr_sq_bu00.txt' )
     parser.add_argument('--get_oarsi_results', type=int, default = 0)
 
     parser.add_argument('--start_margin', type=float, default = 0.8)
@@ -186,48 +189,30 @@ if __name__ == '__main__':
   torch.cuda.manual_seed_all(args.seed)
 
 
-  if not os.path.exists('./outputs'):
-       os.makedirs('./outputs')
+  base_output_dir = os.path.join(args.dir_path, 'outputs')
+  subdirs = [
+        '',  # outputs/
+        'label_details',
+        'results',
+        'dfs',
+        'models',
+        'logs',
+        'oarsi'
+    ]
 
-  if not os.path.exists('./outputs/label_details/'):
-       os.makedirs('./outputs/label_details/')
+    # Create main output folders
+  for subdir in subdirs:
+        path = os.path.join(base_output_dir, subdir)
+        os.makedirs(path, exist_ok=True)
 
-  if not os.path.exists('./outputs/results'):
-       os.makedirs('./outputs/results')
-
-  if not os.path.exists('./outputs/dfs'):
-       os.makedirs('./outputs/dfs')
-
-  if not os.path.exists('./outputs/models'):
-       os.makedirs('./outputs/models')
-
-  if not os.path.exists('./outputs/logs'):
-       os.makedirs('./outputs/logs')
-
-  if not os.path.exists('./outputs/oarsi'):
-           os.makedirs('./outputs/oarsi')
-
+    # Stage-specific subfolders
   stages = ['ss', 'stage_severe_pred', 'stage2', 'stage3']
+  stage_subdirs = ['results', 'dfs', 'models', 'logs', 'oarsi', 'label_details']
+
   for stage in stages:
-      if not os.path.exists('./outputs/results/' + stage):
-           os.makedirs('./outputs/results/' + stage)
-
-      if not os.path.exists('./outputs/dfs/' + stage):
-           os.makedirs('./outputs/dfs/' + stage)
-
-      if not os.path.exists('./outputs/models/' + stage):
-           os.makedirs('./outputs/models/' + stage)
-
-      if not os.path.exists('./outputs/logs/' + stage):
-           os.makedirs('./outputs/logs/' + stage)
-
-      if not os.path.exists('./outputs/oarsi/' + stage):
-               os.makedirs('./outputs/oarsi/' + stage)
-
-      if not os.path.exists('./outputs/label_details/' + stage):
-               os.makedirs('./outputs/label_details/' + stage)
-
-
+        for subdir in stage_subdirs:
+            path = os.path.join(base_output_dir, subdir, stage)
+            os.makedirs(path, exist_ok=True)
 
   model_name_temp = args.model_name  + '_bs_' + str(args.bs) + '_task_' + str(args.task)+  '_lr_' + str(args.lr)
   print(f"Temp Model Name: {model_name_temp}")
@@ -278,7 +263,7 @@ if __name__ == '__main__':
       pseudo_label_ids, margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.stage2_N, model_name_prefix = args.model_name, model_name=stages[2] + '/' + model_name_temp)
       shots = len(pseudo_label_ids)
       model_name_temp_stage2 =  stages[2] + '/' + 'stage2_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)  + '_N_' + str(args.stage2_N)
-      pd.DataFrame(pseudo_label_ids).to_csv('./outputs/label_details/' + model_name_temp_stage2 + 'dclr_fewsome_OA_iter1_pseudo_anom_labels.csv')
+      pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage2 + 'dclr_fewsome_OA_iter1_pseudo_anom_labels.csv')
       current_epoch, stage2_path_to_anom_scores = dclr_training(args, model_name_temp_stage2, stages[2], pseudo_label_ids= pseudo_label_ids, epochs = args.stage2_epochs, current_epoch = TRAIN_PLATEAU_EPOCH, model_prefix = args.model_name, num_ss=0, self_supervised = 0, semi= 1)
       if args.eval_epoch == 0:
            for key in current_epoch.keys():
@@ -298,7 +283,7 @@ if __name__ == '__main__':
         pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=263, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp)
         shots = len(pseudo_label_ids)
         model_name_temp_stage3 =  stages[3] + '/' +  'stage3_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)
-        pd.DataFrame(pseudo_label_ids).to_csv('./outputs/label_details/' + model_name_temp_stage3 + 'dclr_fewsome_OA_iter2_pseudo_anom_labels.csv')
+        pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage3 + 'dclr_fewsome_OA_iter2_pseudo_anom_labels.csv')
         current_epoch, stage3_path_to_anom_scores = dclr_training(args, model_name_temp_stage3, stages[3], pseudo_label_ids = pseudo_label_ids, epochs = args.stage3_epochs, num_ss=0, current_epoch = current_epoch, model_prefix = args.model_name, self_supervised = 0, semi= 1)
         if args.eval_epoch == 0:
               for key in current_epoch.keys():
@@ -315,7 +300,7 @@ if __name__ == '__main__':
       pseudo_label_ids, severe_margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.severe_num_pseudo_labels, model_name_prefix = args.model_name, model_name=stages[1] + '/' + model_name_temp)
       shots = len(pseudo_label_ids)
       model_name_temp_sev =  stages[1] + '/' + 'stage_sev_pred_' + 'margin_' + str(severe_margin) + '_' + model_name_temp + '_shots_' + str(shots)  + '_N_' + str(args.stage_severe_pred_N)
-      pd.DataFrame(pseudo_label_ids).to_csv('./outputs/label_details/' + model_name_temp_sev + 'dclr_fewsome_sev_pseudo_anom_labels.csv')
+      pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_sev + 'dclr_fewsome_sev_pseudo_anom_labels.csv')
       current_epoch, stage_severe_path_to_anom_scores = dclr_training(args, model_name_temp_sev, stages[1], pseudo_label_ids= pseudo_label_ids, epochs = args.stage_severe_pred_epochs, current_epoch = TRAIN_PLATEAU_EPOCH, model_prefix = args.model_name, num_ss=0, self_supervised = 0, semi= 1)
       if args.eval_epoch == 0:
            for key in current_epoch.keys():

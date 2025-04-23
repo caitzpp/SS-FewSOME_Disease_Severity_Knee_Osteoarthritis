@@ -8,6 +8,7 @@ from evaluate import *
 from utils import *
 from sklearn.metrics import roc_curve, auc
 import sys
+import os
 
 
 class ContrastiveLoss(torch.nn.Module):
@@ -323,7 +324,7 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
               logs_df=pd.concat([logs_df, pd.DataFrame(ref_c, columns=['ref_centre']) ], axis =1)
 
 
-          logs_df.to_csv('./outputs/logs/'+ model_name)
+          logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/')+ model_name)
 
 
 

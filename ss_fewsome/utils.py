@@ -9,6 +9,7 @@ from sklearn.metrics import roc_curve, auc, roc_auc_score, precision_recall_fsco
 from scipy import stats
 import torch.nn.functional as F
 import sys
+import argparse
 
 MAX_MARGIN = 4
 precision = 0.0001
@@ -100,7 +101,7 @@ def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path
 
 
 
-def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name):
+def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args):
 
     files_total = os.listdir(path_to_anom_scores)
     if isinstance(current_epoch, dict):
@@ -199,7 +200,7 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
     anoms = anoms.sort_values(by='av', ascending =False).reset_index(drop=True)
     anoms['id'] = anoms['id'].apply(lambda x: data_path + '/train/'+x)
 
-    anoms['label'].value_counts().to_csv('./outputs/label_details/' + model_name + 'anoms_label.csv'.format(current_epoch))
+    anoms['label'].value_counts().to_csv(os.path.join(args.dir_path, 'outputs/label_details/') + model_name + 'anoms_label.csv'.format(current_epoch))
 
     return anoms['id'].tolist(), margin
 
@@ -212,38 +213,38 @@ def write_results(df, results, res_name, logs_df, epoch, model, optimizer, ref_s
 
 
       try:
-          logs_df.to_csv('./outputs/logs/{}'.format(res_name))
+          logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/{}').format(res_name))
       except:
           pass
 
-      results.to_csv('./outputs/results/' + res_name  + '_epoch_' +str(epoch) )
+      results.to_csv(os.path.join(args.dir_path, 'outputs/results/') + res_name  + '_epoch_' +str(epoch) )
 
       if oarsi_res is not None:
-          oarsi_res.to_csv('./outputs/oarsi/' + res_name  + '_epoch_' +str(epoch) )
+          oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi/')  + res_name  + '_epoch_' +str(epoch) )
 
 
       if args.save_models == 1:
         torch.save({
           'model_state_dict': model.state_dict(),
           'optimizer_state_dict': optimizer.state_dict()
-          }, './outputs/models/' + res_name  + '_epoch_' +str(epoch))
+          }, os.path.join(args.dir_path, 'outputs/models/')  + res_name  + '_epoch_' +str(epoch))
 
       elif args.save_models == 2:
-          models = os.listdir('./outputs/models/')
+          models = os.listdir(os.path.join(args.dir_path, 'outputs/models/') )
           for mod in models:
              if res_name in mod:
-              os.remove('./outputs/models/' + mod)
+              os.remove(os.path.join(args.dir_path, 'outputs/models/')  + mod)
 
           torch.save({
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict()
-            }, './outputs/models/' + res_name  + '_epoch_' +str(epoch))
+            }, os.path.join(args.dir_path, 'outputs/models/')  + res_name  + '_epoch_' +str(epoch))
 
 
 
       if args.save_anomaly_scores ==1 :
           df = df.sort_values(by='centre_mean', ascending = False).reset_index(drop=True)
-          df.to_csv('./outputs/dfs/' + res_name  + '_epoch_' +str(epoch))
+          df.to_csv(os.path.join(args.dir_path, 'outputs/dfs/') + res_name  + '_epoch_' +str(epoch))
 
 
 def create_patches(features, padding,patchsize, stride):

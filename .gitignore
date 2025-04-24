@@ -28,6 +28,7 @@ logs/
 # Outputs
 dfs/
 /cache/
+cache/
 checkpoints/
 results/
 models/

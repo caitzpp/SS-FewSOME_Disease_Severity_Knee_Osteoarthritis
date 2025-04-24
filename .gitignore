@@ -28,6 +28,6 @@ logs/
 # Outputs
 dfs/
 /cache/
-/checkpoints/
+checkpoints/
 results/
 models/

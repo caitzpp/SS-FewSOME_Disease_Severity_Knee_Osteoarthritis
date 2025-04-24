@@ -24,14 +24,14 @@ class ContrastiveLoss(torch.nn.Module):
         '''
 
         sim = torch.nn.CosineSimilarity()(output1, output2).to(self.device)
-        print(f"Cosine Similarity: {sim}")
+        # print(f"Cosine Similarity: {sim}")
          
         dist = 1-sim
         dist = torch.clip(dist, min=0,max=1)
-        print(f"Distance: {dist}")
+        # print(f"Distance: {dist}")
          
         loss_contrastive = torch.nn.BCELoss()(dist, label)
-        print(f"Contrastive Loss: {loss_contrastive}")
+        # print(f"Contrastive Loss: {loss_contrastive}")
          
         assert loss_contrastive.requires_grad == True
         return loss_contrastive
@@ -129,7 +129,7 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
 
               if patches:
-                  print(f"Creating patches")
+                #   print(f"Creating patches")
                    
                   output1 = create_patches(output1, args.padding,args.patchsize, args.stride)
                   output1=F.adaptive_avg_pool2d(output1, (1,1) )[:,:,0,0].squeeze(1)
@@ -178,7 +178,7 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
 
           # Backward and optimize
           optimizer.zero_grad()
-          print("Zero grad done")
+        #   print("Zero grad done")
            
 
           loss.backward(retain_graph=True)
@@ -196,10 +196,8 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
           optimizer.step()
 
           torch.cuda.empty_cache()
-          print("Cache GPU emptied")
-           
 
-
+         
       fpr, tpr, thresholds = roc_curve(train_labels ,train_preds)
       train_auc = auc(fpr, tpr)
       print('Train AUC is {}'.format(train_auc))

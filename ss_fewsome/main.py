@@ -166,7 +166,7 @@ if __name__ == '__main__':
       model_name_temp_ss = stages[0] + '/' + 'ss_training_' + model_name_temp  + '_N_' + str(args.ss_N)
       print(f"Model Name for temp SS: {model_name_temp_ss}")
       sys.stdout.flush()
-      stage1_path_to_anom_scores, stage1_path_to_logs = ss_training(args, model_name_temp_ss, N=args.ss_N, epochs = TRAIN_PLATEAU_EPOCH, num_ss = args.ss_N, shots=0, self_supervised=1, semi=0, seed = None, eval_epoch = args.eval_epoch)
+      stage1_path_to_anom_scores, stage1_path_to_logs = ss_training(args, model_name_temp_ss, N=args.ss_N, epochs = TRAIN_PLATEAU_EPOCH, num_ss = args.ss_N, shots=0, self_supervised=1, semi=0, seed = args.seed, eval_epoch = args.eval_epoch)
       print("Train SS complete")
       sys.stdout.flush()
   else:

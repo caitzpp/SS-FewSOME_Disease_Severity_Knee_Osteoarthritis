@@ -97,18 +97,18 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
       train_preds = []
       train_labels=[]
       loss_sum = 0
-      print("Starting epoch " + str(epoch+1))
+      #print("Starting epoch " + str(epoch+1))
       np.random.seed(epoch*seed)
       np.random.shuffle(train_indexes)
 
       batches = list(create_batches(train_indexes, args.bs))
 
       for batch_ind in range(len(batches)):
-          print(f"Batch Index: {batch_ind}")
+         
 
           iterations=0
           for inbatch_ind,index in enumerate(batches[batch_ind]):
-              print("Starting Model Train")
+             
               model.train()
               iterations+=1
               seed_temp = (epoch+1) * (inbatch_ind+1) * (batch_ind+1)

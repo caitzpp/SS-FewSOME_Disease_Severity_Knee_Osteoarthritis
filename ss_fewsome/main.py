@@ -67,9 +67,14 @@ def dclr_training(args, model_temp_name_stage, stage, pseudo_label_ids, epochs, 
         test_dataset = None
 
     if seed is not None:
-        seeds = [seed]
-    elif stage == 'stage2':
+        if isinstance(seed, list):
+            seeds = seed
+        else:
+            seeds = [seed]
+        print(f"Using seeds {seeds}")
+    elif seed is None and stage == 'stage2':
         seeds =[1001, 138647, 193, 34, 44, 71530, 875688, 8765, 985772, 244959]
+        print(f"Using seeds {seeds}")
     else:
         seeds =[ 1001, 138647, 193, 34, 44]
     for seed in seeds:
@@ -176,11 +181,11 @@ if __name__ == '__main__':
       stage1_path_to_logs = args.stage1_path_to_logs
 
 
-  print_ensemble_results(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
+  print_ensemble_results(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed = args.seed)
   sys.stdout.flush()
   #stage2 is to DCLR-FewSOME_OA ITER 1
   if args.stage2:
-      pseudo_label_ids, margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.stage2_N, model_name_prefix = args.model_name, model_name=stages[2] + '/' + model_name_temp, args=args)
+      pseudo_label_ids, margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.stage2_N, model_name_prefix = args.model_name, model_name=stages[2] + '/' + model_name_temp, args=args, nseed=args.seed)
       shots = len(pseudo_label_ids)
       model_name_temp_stage2 =  stages[2] + '/' + 'stage2_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)  + '_N_' + str(args.stage2_N)
       pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage2 + 'dclr_fewsome_OA_iter1_pseudo_anom_labels.csv')
@@ -196,11 +201,11 @@ if __name__ == '__main__':
 
 
   stage2_epoch = current_epoch
-  print_ensemble_results(stage2_path_to_anom_scores, current_epoch, stages[2], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
+  print_ensemble_results(stage2_path_to_anom_scores, current_epoch, stages[2], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed=args.seed)
   print(current_epoch)
   #stage3 is to DCLR-FewSOME_OA ITER 2
   if args.stage3:
-        pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=263, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp, args=args)
+        pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=263, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp, args=args, nseed=args.seed)
         shots = len(pseudo_label_ids)
         model_name_temp_stage3 =  stages[3] + '/' +  'stage3_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)
         pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage3 + 'dclr_fewsome_OA_iter2_pseudo_anom_labels.csv')
@@ -214,10 +219,10 @@ if __name__ == '__main__':
 
   stage3_epoch = current_epoch
   print(current_epoch)
-  print_ensemble_results(stage3_path_to_anom_scores, current_epoch, stages[3], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
+  print_ensemble_results(stage3_path_to_anom_scores, current_epoch, stages[3], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed=args.seed)
 
   if args.stage_severe_pred:
-      pseudo_label_ids, severe_margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.severe_num_pseudo_labels, model_name_prefix = args.model_name, model_name=stages[1] + '/' + model_name_temp, args=args)
+      pseudo_label_ids, severe_margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.severe_num_pseudo_labels, model_name_prefix = args.model_name, model_name=stages[1] + '/' + model_name_temp, args=args, nseed = args.seed)
       shots = len(pseudo_label_ids)
       model_name_temp_sev =  stages[1] + '/' + 'stage_sev_pred_' + 'margin_' + str(severe_margin) + '_' + model_name_temp + '_shots_' + str(shots)  + '_N_' + str(args.stage_severe_pred_N)
       pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_sev + 'dclr_fewsome_sev_pseudo_anom_labels.csv')
@@ -231,12 +236,12 @@ if __name__ == '__main__':
       current_epoch = get_best_epoch(args.stage_severe_path_to_logs, last_epoch = TRAIN_PLATEAU_EPOCH, metric='ref_centre', model_prefix = args.model_name)
 
   stage_severe_epoch = SEVERE_PRED_EPOCH
-  print_ensemble_results(stage_severe_path_to_anom_scores, SEVERE_PRED_EPOCH, stages[1], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
+  print_ensemble_results(stage_severe_path_to_anom_scores, SEVERE_PRED_EPOCH, stages[1], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed = args.seed)
 
 
   #rerun results for all stages
-  print_ensemble_results(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
-  print_ensemble_results(stage2_path_to_anom_scores, stage2_epoch, stages[2], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
-  print_ensemble_results(stage3_path_to_anom_scores, stage3_epoch, stages[3], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
-  print_ensemble_results(stage_severe_path_to_anom_scores, SEVERE_PRED_EPOCH, stages[1], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)
+  print_ensemble_results(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed = args.seed)
+  print_ensemble_results(stage2_path_to_anom_scores, stage2_epoch, stages[2], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, seed = args.seed)
+  print_ensemble_results(stage3_path_to_anom_scores, stage3_epoch, stages[3], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name,  seed = args.seed)
+  print_ensemble_results(stage_severe_path_to_anom_scores, SEVERE_PRED_EPOCH, stages[1], 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name,  seed = args.seed)
   combine_results(stage3_path_to_anom_scores, stage_severe_path_to_anom_scores, stage3_epoch, stage_severe_epoch, 'w_centre', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name)

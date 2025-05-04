@@ -39,51 +39,55 @@ def get_best_epoch(path_to_centre_dists, last_epoch, metric, model_prefix):
     return best_epochs
 
 
-def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path, files):
+def get_anoms(df, margin, train_dfs, train_ids_path, files):
     df['count'] = 0
 
     for i in range(len(df)):
+        for j in range(len(train_dfs)):
+            t = train_dfs[j]
+            if df.iloc[i, 3+j]> (margin*np.max(t['av'])):
+                df.loc[i, 'count'] += 1
 
-        for j in range(len(files)):
-            if j ==0:
-                if df.iloc[i, 3+j] > (margin *np.max(t0['av'])):
-                    df.loc[i,'count']+=1
+        # for j in range(len(files)):
+        #     if j ==0:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t0['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==1:
-                if df.iloc[i, 3+j] > (margin *np.max(t1['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==1:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t1['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==2:
-                if df.iloc[i, 3+j] > (margin *np.max(t2['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==2:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t2['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==3:
-                if df.iloc[i, 3+j] > (margin *np.max(t3['av'])):
-                    df.loc[i, 'count']+=1
+        #     if j ==3:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t3['av'])):
+        #             df.loc[i, 'count']+=1
 
-            if j ==4:
-                if df.iloc[i, 3+j] > (margin *np.max(t4['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==4:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t4['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==5:
-                if df.iloc[i, 3+j] > (margin *np.max(t5['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==5:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t5['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==6:
-                if df.iloc[i, 3+j] > (margin *np.max(t6['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==6:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t6['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==7:
-                if df.iloc[i, 3+j] > (margin *np.max(t7['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==7:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t7['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==8:
-                if df.iloc[i, 3+j] > (margin *np.max(t8['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==8:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t8['av'])):
+        #             df.loc[i,'count']+=1
 
-            if j ==9:
-                if df.iloc[i, 3+j] > (margin *np.max(t9['av'])):
-                    df.loc[i,'count']+=1
+        #     if j ==9:
+        #         if df.iloc[i, 3+j] > (margin *np.max(t9['av'])):
+        #             df.loc[i,'count']+=1
 
 
 
@@ -94,14 +98,40 @@ def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path
     training_data = pd.read_csv(train_ids_path + 'train_ids.csv')
     training_data.columns=['ind', 'id']
     training_data['id'] = training_data['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    training_data = df.loc[df['id'].isin(training_data['id'].values.tolist())].reset_index(drop=True)
-    anoms=df.loc[df['sim'] < np.percentile(training_data['sim'], 95)].reset_index(drop=True)
+
+    training_subset = df[df['id'].isin(training_data['id'])].copy()
+
+    if training_subset.empty or training_subset['sim'].isnull().all():
+        raise ValueError("No valid 'sim' values found in training data subset.")
+    #training_data = df.loc[df['id'].isin(training_data['id'].values.tolist())].reset_index(drop=True)
+    threshold = np.percentile(training_subset['sim'].dropna(), 95)
+    anoms=df.loc[df['sim'] < threshold].copy()
     anoms = anoms.loc[anoms['count'] == len(files) ].reset_index(drop=True)
     return anoms
 
+def get_pseudolabels_data(seeds, files, path_to_anom_scores, metric):
+     for i,seed in enumerate(seeds):
+            for file in files:
+                if (('_' + str(seed) + '_') in file) :
+                    logs = pd.read_csv(path_to_anom_scores + file)
 
+                    if i ==0:
+                        df = logs.iloc[:,:3]
 
-def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args):
+                    scores = logs[['id',metric]]
+                    if metric == 'w_centre':
+                        scores.loc[:,metric] = (scores.loc[:,metric] + 2) / 4
+                    else:
+                        scores.loc[:,metric] = (scores.loc[:,metric] + 1) / 2
+
+                    df = df.merge(scores, on='id', how='left')
+
+                    df.columns = np.concatenate((df.columns.values[:-1] , np.array(['col_{}'.format(i)])))
+
+                    df['col_{}'.format(i)] = df['col_{}'.format(i)] / np.max(df['col_{}'.format(i)])
+     return df
+
+def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args, nseed=None):
 
     files_total = os.listdir(path_to_anom_scores)
     if isinstance(current_epoch, dict):
@@ -116,75 +146,93 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
         assert len(files) == 10
 
 
+    if nseed is None:
+        seeds = [1001,71530,138647,875688,985772,44,34,193,244959,8765]
+        df = get_pseudolabels_data(seeds, files, path_to_anom_scores, metric)
+        # for i,seed in enumerate(seeds):
+        #     for file in files:
+        #         if (('_' + str(seed) + '_') in file) :
+        #             logs = pd.read_csv(path_to_anom_scores + file)
 
-    seeds = [1001,71530,138647,875688,985772,44,34,193,244959,8765]
-    for i,seed in enumerate(seeds):
+        #             if i ==0:
+        #                 df = logs.iloc[:,:3]
 
-        for file in files:
-          if (('_' + str(seed) + '_') in file) :
-            logs = pd.read_csv(path_to_anom_scores + file)
+        #             scores = logs[['id',metric]]
+        #             if metric == 'w_centre':
+        #                 scores.loc[:,metric] = (scores.loc[:,metric] + 2) / 4
+        #             else:
+        #                 scores.loc[:,metric] = (scores.loc[:,metric] + 1) / 2
 
-            if i ==0:
-                df = logs.iloc[:,:3]
+        #             df = df.merge(scores, on='id', how='left')
 
-            scores = logs[['id',metric]]
-            if metric == 'w_centre':
-                scores.loc[:,metric] = (scores.loc[:,metric] + 2) / 4
-            else:
-                scores.loc[:,metric] = (scores.loc[:,metric] + 1) / 2
+        #             df.columns = np.concatenate((df.columns.values[:-1] , np.array(['col_{}'.format(i)])))
 
-            df = df.merge(scores, on='id', how='left')
+        #             df['col_{}'.format(i)] = df['col_{}'.format(i)] / np.max(df['col_{}'.format(i)])
+    else:
+        #seeds = nseed
 
-            df.columns = np.concatenate((df.columns.values[:-1] , np.array(['col_{}'.format(i)])))
-
-            df['col_{}'.format(i)] = df['col_{}'.format(i)] / np.max(df['col_{}'.format(i)])
-
-
-
+        if isinstance(nseed, list):
+            seeds = nseed
+            df = get_pseudolabels_data(seeds, files, path_to_anom_scores, metric)
+        else:
+            seeds = [nseed]
+            df = get_pseudolabels_data(seeds, files, path_to_anom_scores, metric)
+           
     df['av']=df.iloc[:,3:].mean(axis=1)
     df['std'] = df.iloc[:,3:-1].std(axis=1)
 
-    t0=pd.read_csv(train_ids_path + "train_seed_1001.csv", index_col=0)
-    t1=pd.read_csv(train_ids_path + "train_seed_71530.csv", index_col=0)
-    t2=pd.read_csv(train_ids_path + "train_seed_138647.csv", index_col=0)
-    t3=pd.read_csv(train_ids_path + "train_seed_875688.csv", index_col=0)
-    t4=pd.read_csv(train_ids_path + "train_seed_985772.csv", index_col=0)
-    t5=pd.read_csv(train_ids_path + "train_seed_44.csv", index_col=0)
-    t6=pd.read_csv(train_ids_path + "train_seed_34.csv", index_col=0)
-    t7=pd.read_csv(train_ids_path + "train_seed_193.csv", index_col=0)
-    t8=pd.read_csv(train_ids_path + "train_seed_244959.csv", index_col=0)
-    t9=pd.read_csv(train_ids_path + "train_seed_8765.csv", index_col=0)
+    train_dfs = []
+
+    for seed in seeds:
+        df_seed = pd.read_csv(train_ids_path + f"train_seed_{seed}.csv", index_col=0)
+        df_seed['id'] = df_seed['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1])
+        df_seed = df_seed.merge(df, on='id', how='left')
+        train_dfs.append(df_seed)
+
+    
 
 
-    df['id'] = df['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t0['id'] = t0['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t0=t0.merge(df, on='id', how='left')
-    t1['id'] = t1['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t1=t1.merge(df, on='id', how='left')
-    t2['id'] = t2['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t2=t2.merge(df, on='id', how='left')
-    t3['id'] = t3['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t3=t3.merge(df, on='id', how='left')
-    t4['id'] = t4['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t4=t4.merge(df, on='id', how='left')
-    t5['id'] = t5['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t5=t5.merge(df, on='id', how='left')
-    t6['id'] = t6['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t6=t6.merge(df, on='id', how='left')
-    t7['id'] = t7['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t7=t7.merge(df, on='id', how='left')
-    t8['id'] = t8['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t8=t8.merge(df, on='id', how='left')
-    t9['id'] = t9['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    t9=t9.merge(df, on='id', how='left')
+    # t0=pd.read_csv(train_ids_path + "train_seed_1001.csv", index_col=0)
+    # t1=pd.read_csv(train_ids_path + "train_seed_71530.csv", index_col=0)
+    # t2=pd.read_csv(train_ids_path + "train_seed_138647.csv", index_col=0)
+    # t3=pd.read_csv(train_ids_path + "train_seed_875688.csv", index_col=0)
+    # t4=pd.read_csv(train_ids_path + "train_seed_985772.csv", index_col=0)
+    # t5=pd.read_csv(train_ids_path + "train_seed_44.csv", index_col=0)
+    # t6=pd.read_csv(train_ids_path + "train_seed_34.csv", index_col=0)
+    # t7=pd.read_csv(train_ids_path + "train_seed_193.csv", index_col=0)
+    # t8=pd.read_csv(train_ids_path + "train_seed_244959.csv", index_col=0)
+    # t9=pd.read_csv(train_ids_path + "train_seed_8765.csv", index_col=0)
+
+
+    # df['id'] = df['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t0['id'] = t0['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t0=t0.merge(df, on='id', how='left')
+    # t1['id'] = t1['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t1=t1.merge(df, on='id', how='left')
+    # t2['id'] = t2['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t2=t2.merge(df, on='id', how='left')
+    # t3['id'] = t3['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t3=t3.merge(df, on='id', how='left')
+    # t4['id'] = t4['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t4=t4.merge(df, on='id', how='left')
+    # t5['id'] = t5['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t5=t5.merge(df, on='id', how='left')
+    # t6['id'] = t6['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t6=t6.merge(df, on='id', how='left')
+    # t7['id'] = t7['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t7=t7.merge(df, on='id', how='left')
+    # t8['id'] = t8['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t8=t8.merge(df, on='id', how='left')
+    # t9['id'] = t9['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    # t9=t9.merge(df, on='id', how='left')
 
     if num_pseudo_labels is None:
-        anoms = get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path, files)
+        anoms = get_anoms(df, margin, train_dfs, train_ids_path, files)
     else:
         margin_found = False
         while margin_found == False:
 
-            anoms = get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path, files)
+            anoms = get_anoms(df, margin, train_dfs, train_ids_path, files)
             if num_pseudo_labels == len(anoms):
                 margin_found = True
             margin+=precision
@@ -293,7 +341,7 @@ def ensemble_results(df, stage, metric, meta_data_dir, get_oarsi_results):
             print('OARSI AUC is {}'.format(oarsi_res['auc'][0]))
 
 
-def print_ensemble_results(path_to_anom_scores, epoch, stage, metric, meta_data_dir, get_oarsi_results, model_name_prefix ):
+def print_ensemble_results(path_to_anom_scores, epoch, stage, metric, meta_data_dir, get_oarsi_results, model_name_prefix, seed = None):
     print('---------------------------------------------------- For stage ' + stage + '----------------------------------------------------')
     print('-----------------------------RESULTS ON UNLABELLED DATA---------------------------')
     print('Warning: the results on unlabelled data includes the pseudo labels i.e. for stages that are not SSL and severe predictor, the model was trained on the psuedo labels which are also included in the unlabelled results')
@@ -303,7 +351,8 @@ def print_ensemble_results(path_to_anom_scores, epoch, stage, metric, meta_data_
         files=[]
         for key in epoch.keys():
             files = files + [file for file in files_total if (('epoch_' + str(epoch[key]) ) in file) & ('on_test_set' not in file ) & ('seed_' + str(key) in file) & (model_name_prefix in file) ]
-
+    elif seed is not None:
+        files = [file for file in files_total if (('seed_' + str(seed) ) in file) & ('on_test_set' not in file ) & (model_name_prefix in file)]
     else:
         files = [file for file in files_total if (('epoch_' + str(epoch) ) in file) & ('on_test_set' not in file ) & (model_name_prefix in file)]
 
@@ -315,6 +364,8 @@ def print_ensemble_results(path_to_anom_scores, epoch, stage, metric, meta_data_
         files=[]
         for key in epoch.keys():
             files = files + [file for file in files_total if (('epoch_' + str(epoch[key]) ) in file) & ('on_test_set' in file ) & ('seed_' + str(key) in file) & (model_name_prefix in file)]
+    elif seed is not None:
+        files = [file for file in files_total if (('seed_' + str(seed) ) in file) & ('on_test_set' in file ) & (model_name_prefix in file)]
     else:
         files = [file for file in files_total if (('epoch_' + str(epoch) ) in file) & ('on_test_set' in file ) & (model_name_prefix in file)]
 

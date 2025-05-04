@@ -32,3 +32,4 @@ cache/
 checkpoints/
 results/
 models/
+outputs/

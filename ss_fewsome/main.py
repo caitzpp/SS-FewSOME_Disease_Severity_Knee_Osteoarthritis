@@ -109,9 +109,9 @@ if __name__ == '__main__':
        raise
 
   torch.use_deterministic_algorithms(True, warn_only=True)
-  torch.manual_seed(args.seed)
-  torch.cuda.manual_seed(args.seed)
-  torch.cuda.manual_seed_all(args.seed)
+  torch.manual_seed(1001)
+  torch.cuda.manual_seed(1001)
+  torch.cuda.manual_seed_all(1001)
 
 
   base_output_dir = os.path.join(args.dir_path, 'outputs')

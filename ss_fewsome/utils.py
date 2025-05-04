@@ -91,13 +91,27 @@ def get_anoms(df, margin, train_dfs, train_ids_path, files):
 
 
 
-
+   
     sim = pd.read_csv(train_ids_path + "sim_scores.csv")
-    sim['id'] = sim['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
-    df = df.merge(sim,on='id', how='left')
+    #sim['id'] = sim['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    #df = df.merge(sim,on='id', how='left')
+  
     training_data = pd.read_csv(train_ids_path + 'train_ids.csv')
     training_data.columns=['ind', 'id']
-    training_data['id'] = training_data['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+    #training_data['id'] = training_data['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
+
+    def normalize_id(x):
+        parts = x.split('/')
+        return '/'.join(parts[-2:]) if len(parts) >= 2 else x
+
+    df['id'] = df['id'].apply(normalize_id)
+    sim['id'] = sim['id'].apply(normalize_id)
+    training_data['id'] = training_data['id'].apply(normalize_id)
+    
+    matched = df['id'].isin(training_data['id']).sum()
+    #print(f"Matched IDs between df and training_data: {matched} / {len(df)}")
+
+    df = df.merge(sim,on='id', how='left')
 
     training_subset = df[df['id'].isin(training_data['id'])].copy()
 
@@ -109,27 +123,70 @@ def get_anoms(df, margin, train_dfs, train_ids_path, files):
     anoms = anoms.loc[anoms['count'] == len(files) ].reset_index(drop=True)
     return anoms
 
+# def get_pseudolabels_data(seeds, files, path_to_anom_scores, metric):
+#      for i,seed in enumerate(seeds):
+#             for file in files:
+#                 if (('_' + str(seed) + '_') in file) :
+#                     logs = pd.read_csv(path_to_anom_scores + file)
+
+#                     if i ==0:
+#                         df = logs.iloc[:,:3]
+
+#                     scores = logs[['id',metric]]
+#                     if metric == 'w_centre':
+#                         scores.loc[:,metric] = (scores.loc[:,metric] + 2) / 4
+#                     else:
+#                         scores.loc[:,metric] = (scores.loc[:,metric] + 1) / 2
+
+#                     df = df.merge(scores, on='id', how='left')
+
+#                     df.columns = np.concatenate((df.columns.values[:-1] , np.array(['col_{}'.format(i)])))
+
+#                     df['col_{}'.format(i)] = df['col_{}'.format(i)] / np.max(df['col_{}'.format(i)])
+#      return df
+
 def get_pseudolabels_data(seeds, files, path_to_anom_scores, metric):
-     for i,seed in enumerate(seeds):
-            for file in files:
-                if (('_' + str(seed) + '_') in file) :
-                    logs = pd.read_csv(path_to_anom_scores + file)
+    df = None
 
-                    if i ==0:
-                        df = logs.iloc[:,:3]
+    for i, seed in enumerate(seeds):
+        # Find file corresponding to this seed
+        seed_file = next((f for f in files if f"_seed_{seed}_" in f), None)
+        if seed_file is None:
+            print(f"Warning: No file found for seed {seed}. Skipping.")
+            continue
 
-                    scores = logs[['id',metric]]
-                    if metric == 'w_centre':
-                        scores.loc[:,metric] = (scores.loc[:,metric] + 2) / 4
-                    else:
-                        scores.loc[:,metric] = (scores.loc[:,metric] + 1) / 2
+        logs = pd.read_csv(os.path.join(path_to_anom_scores, seed_file))
+        #print(logs)
 
-                    df = df.merge(scores, on='id', how='left')
+        if df is None:
+            # Start with ID, label, and whatever other info is in the first 3 columns
+            df = logs.iloc[:, :3].copy()
 
-                    df.columns = np.concatenate((df.columns.values[:-1] , np.array(['col_{}'.format(i)])))
+        # Normalize the metric for this seed
+        scores = logs[['id', metric]].copy()
+        if metric == 'w_centre':
+            scores[metric] = (scores[metric] + 2) / 4
+        else:
+            scores[metric] = (scores[metric] + 1) / 2
 
-                    df['col_{}'.format(i)] = df['col_{}'.format(i)] / np.max(df['col_{}'.format(i)])
-     return df
+        col_name = f'col_{i}'
+        scores.rename(columns={metric: col_name}, inplace=True)
+
+        # Normalize and handle division by zero or NaNs
+        max_val = scores[col_name].max(skipna=True)
+        if pd.isna(max_val) or max_val == 0:
+            print(f"Warning: Skipping normalization for {col_name} due to max=0 or NaN")
+            scores[col_name] = 0
+        else:
+            scores[col_name] = scores[col_name] / max_val
+
+        # Merge into df
+        df = df.merge(scores, on='id', how='left')
+
+    if df is None:
+        raise ValueError("No valid seed files were found or matched. Cannot construct pseudo-labels dataframe.")
+
+    return df
 
 def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args, nseed=None):
 
@@ -145,6 +202,7 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
         files = [f for f in files_total if ( ('epoch_' + str(current_epoch) in f) &  ('on_test_set_' not in f)  &  (model_name_prefix in f)  ) ]
         assert len(files) == 10
 
+    #print(f"files: {files}")
 
     if nseed is None:
         seeds = [1001,71530,138647,875688,985772,44,34,193,244959,8765]

@@ -26,5 +26,6 @@ singularity exec --nv --no-home \
   --save_models 1 \
   --seed 1001 \
   --train_ss 0 \
+  --stage2_N 5 \
   --stage3 0 \
   --stage_severe_pred 0 \

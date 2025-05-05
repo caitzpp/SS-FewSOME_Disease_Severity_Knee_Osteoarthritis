@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 24:00:00
+#SBATCH -t 48:00:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Experiment
@@ -24,7 +24,7 @@ singularity exec --nv --no-home \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
   --device cuda \
   --save_models 1 \
-  --train_ss 1 \
-  --stage2 0 \
+  --train_ss 0 \
+  --stage2 1 \
   --stage3 0 \
   --stage_severe_pred 0 \

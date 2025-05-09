@@ -121,7 +121,8 @@ class oa(data.Dataset):
         if index >= len(self.paths): #shots
             target = torch.FloatTensor([self.targets2[index]])
             try:
-                img = Image.open(self.paths2[index])
+                img = Image.open(self.paths2[index]).resize((224, 224), Image.BILINEAR)
+                #img = Image.open(self.paths2[index])
             except Exception as e:
                 print(f"[ERROR] Failed to load image at index {index}: {self.paths2[index]}")
                 raise e
@@ -131,7 +132,9 @@ class oa(data.Dataset):
         else:
             target = torch.FloatTensor([self.targets[index]])
             try:
-                img = Image.open(self.paths[index])
+                img = Image.open(self.paths[index]).resize((224, 224), Image.BILINEAR)
+
+                #img = Image.open(self.paths[index])
             except Exception as e:
                 print(f"[ERROR] Failed to load image at index {index}: {self.paths[index]}")
                 raise e
@@ -187,7 +190,9 @@ class oa(data.Dataset):
             if self.semi ==1 :
                     target2 = torch.FloatTensor([self.targets2[ind]])
                     try:
-                        img2 = Image.open(self.paths2[ind])
+                        img2 = Image.open(self.paths2[ind]).resize((224, 224), Image.BILINEAR)
+
+                        #img2 = Image.open(self.paths2[ind])
                     except Exception as e:
                         print(f"[ERROR] Failed to load image at index {index}: {self.paths2[ind]}")
                         raise e
@@ -199,7 +204,9 @@ class oa(data.Dataset):
                     target2 = torch.FloatTensor([1])
                     i2=random.sample(range(0, len(self.targets)), 1)[0]
                     try:
-                        img2 = Image.open(self.paths[i2])
+                        img2 = Image.open(self.paths[i2]).resize((224, 224), Image.BILINEAR)
+
+                        #img2 = Image.open(self.paths[i2])
                     except Exception as e:
                         print(f"[ERROR] Failed to load image at index {index}: {self.paths[i2]}")
                         raise e
@@ -209,7 +216,9 @@ class oa(data.Dataset):
                 else:
                     target2 = torch.FloatTensor([self.targets[ind]])
                     try:
-                        img2 = Image.open(self.paths[ind])
+                        img2 = Image.open(self.paths[ind]).resize((224, 224), Image.BILINEAR)
+
+                        #img2 = Image.open(self.paths[ind])
                     except Exception as e:
                         print(f"[ERROR] Failed to load image at index {index}: {self.paths[ind]}")
                         raise e

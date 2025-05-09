@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 96:00:00
+#SBATCH -t 62:00:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Experiment
@@ -8,7 +8,7 @@
 #SBATCH --error=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Errors/training_%j.err      # Save stderr to file
 
 PROJECT_FOLDER="$HOME/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome"
-DATA_FOLDER="$HOME/data/raw/kaggle dataset"
+DATA_FOLDER="$HOME/data/raw/"
 SIF_FILENAME="my-python311-env.sif"
 FILENAME="main.py"
 
@@ -22,10 +22,11 @@ singularity exec --nv --no-home \
   "$SIF_FILENAME" python /workspace/"$FILENAME" \
   --data_path /data \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
+  --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
   --save_models 2 \
-  --train_ss 0 \
-  --stage2 1 \
+  --train_ss 1 \
+  --stage2 0 \
   --stage3 0 \
   --stage_severe_pred 0 \
-  --model_name mod_2
+  --model_name mod_st

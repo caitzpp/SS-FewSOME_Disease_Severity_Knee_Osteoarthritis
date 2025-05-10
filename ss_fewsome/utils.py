@@ -101,7 +101,7 @@ def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path
 
 
 
-def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name):
+def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args):
 
     files_total = os.listdir(path_to_anom_scores)
     if isinstance(current_epoch, dict):
@@ -198,9 +198,9 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
 
 
     anoms = anoms.sort_values(by='av', ascending =False).reset_index(drop=True)
-    anoms['id'] = anoms['id'].apply(lambda x: data_path + 'train/'+x)
+    anoms['id'] = anoms['id'].apply(lambda x: data_path + '/train/'+x)
 
-    anoms['label'].value_counts().to_csv('./outputs/label_details/' + model_name + 'anoms_label.csv'.format(current_epoch))
+    anoms['label'].value_counts().to_csv(os.path.join(args.dir_path, 'outputs/label_details/') + model_name + 'anoms_label.csv'.format(current_epoch))
 
     return anoms['id'].tolist(), margin
 

@@ -27,7 +27,8 @@ singularity exec --nv --no-home \
   --save_models 2 \
   --train_ss 0 \
   --stage2 1 \
-  --stage3 0 \
-  --stage_severe_pred 0 \
+  --stage3 1 \
+  --stage_severe_pred 1 \
   --model_name mod_st \
-  --start_margin 0.5
+  --start_margin 0.5 \
+  --precision 0.001

@@ -67,6 +67,7 @@ def parse_arguments():
 
     parser.add_argument('--start_margin', type=float, default = 0.8)
     parser.add_argument('--severe_num_pseudo_labels', type=float, default = 3)
+    parser.add_argument('--precision', type=float, default=0.0001)
 
 
 

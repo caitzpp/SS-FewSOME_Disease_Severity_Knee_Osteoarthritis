@@ -5,6 +5,7 @@ setup_output.log
 data/
 wandb/
 Logs/
+downloads/
 
 # Python
 __pycache__/

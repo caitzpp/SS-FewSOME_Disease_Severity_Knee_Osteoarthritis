@@ -188,7 +188,7 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
             if num_pseudo_labels == len(anoms):
                 margin_found = True
             margin+=args.precision
-            if margin > MAX_MARGIN:
+            if margin > args.max_margin:
                 print('Suitable margin not found. Try lowering the starting margin or lowering the precision value.')
                 sys.exit()
 

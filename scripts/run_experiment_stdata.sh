@@ -30,5 +30,5 @@ singularity exec --nv --no-home \
   --stage3 1 \
   --stage_severe_pred 1 \
   --model_name mod_st \
-  --start_margin 0.5 \
-  --precision 0.001
+  --start_margin 0.3 \
+  --precision 0.00001

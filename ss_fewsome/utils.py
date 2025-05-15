@@ -185,9 +185,14 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
         while margin_found == False:
 
             anoms = get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path, files)
+            print(f"Length Anoms: {len(anoms)}")
+            print(f"Num. Pseudo Labels should be: {num_pseudo_labels}")
+            print(len(anoms))
             if num_pseudo_labels == len(anoms):
                 margin_found = True
             margin+=args.precision
+
+            print(f"New Margin is: {margin}")
             if margin > args.max_margin:
                 print('Suitable margin not found. Try lowering the starting margin or lowering the precision value.')
                 sys.exit()

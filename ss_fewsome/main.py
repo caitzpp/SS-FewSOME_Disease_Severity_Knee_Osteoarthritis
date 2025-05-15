@@ -199,7 +199,7 @@ if __name__ == '__main__':
   print(current_epoch)
   #stage3 is to DCLR-FewSOME_OA ITER 2
   if args.stage3:
-        pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=263, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp, args=args)
+        pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=args.stage3_num_pseudo_labels, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp, args=args)
         shots = len(pseudo_label_ids)
         model_name_temp_stage3 =  stages[3] + '/' +  'stage3_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)
         pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage3 + 'dclr_fewsome_OA_iter2_pseudo_anom_labels.csv')

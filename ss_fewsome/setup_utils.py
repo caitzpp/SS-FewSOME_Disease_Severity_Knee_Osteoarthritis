@@ -69,6 +69,7 @@ def parse_arguments():
     parser.add_argument('--severe_num_pseudo_labels', type=float, default = 3)
     parser.add_argument('--precision', type=float, default=0.0001)
     parser.add_argument('--max_margin', type=float, default=4.0)
+    parser.add_argument('--stage3_num_pseudo_labels', type=float, default=263)
 
 
 

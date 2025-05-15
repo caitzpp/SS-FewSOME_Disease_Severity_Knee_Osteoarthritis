@@ -26,9 +26,11 @@ singularity exec --nv --no-home \
   --device cuda \
   --save_models 2 \
   --train_ss 0 \
-  --stage2 1 \
+  --stage2 0 \
   --stage3 1 \
   --stage_severe_pred 1 \
   --model_name mod_st \
-  --start_margin 0.3 \
-  --precision 0.00001
+  --start_margin 0.8 \
+  --precision 0.00001 \
+  --max_margin 3 \
+  --stage3_num_pseudo_labels 50

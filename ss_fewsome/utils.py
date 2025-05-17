@@ -113,6 +113,7 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
 
     else:
         files = [f for f in files_total if ( ('epoch_' + str(current_epoch) in f) &  ('on_test_set_' not in f)  &  (model_name_prefix in f)  ) ]
+        print(files)
         assert len(files) == 10
 
 

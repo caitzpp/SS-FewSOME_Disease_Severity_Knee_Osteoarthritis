@@ -1,5 +1,6 @@
 import torch
 import os
+import numpy as np
 from torch.utils.data import DataLoader
 from model import ALEXNET_nomax_pre
 from setup_utils import parse_arguments
@@ -11,13 +12,14 @@ NEPOCH=400
 seeds=[]
 BATCH_SIZE= 1
 patches = True
+stage = 'ss'
 
 def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
     model.eval()
 
-    all_features = []
-    all_labels = []
-    all_ids = []
+    # all_features = []
+    # all_labels = []
+    # all_ids = []
 
     with torch.no_grad():
         for i, (data, labels, filenames) in enumerate(dataloader):
@@ -32,17 +34,21 @@ def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
             filename = filename.split('/')[-1]
             filename = filename.split('.')[0]
 
-            print(str(labels))
+            label = str(labels[0].item())
 
+            features = features.cpu()
+      
             if save_path:
-                temp_save_path = os.path.join()
+                temp_save_path = os.path.join(save_path, label)
 
-            all_features.append(features.cpu())
-            all_labels.append(labels.cpu())
-            all_ids.append(filename)
+                np.save(os.path.join(temp_save_path, filename + '.npy'), features[0].numpy())
 
-            print(all_labels)
-            print(all_ids)
+            # all_features.append(features.cpu())
+            # all_labels.append(labels.cpu())
+            # all_ids.append(filename)
+
+            # print(all_labels)
+            # print(all_ids)
             break
             # if isinstance(data, tuple):
             #     print(len(data))
@@ -88,6 +94,10 @@ if __name__=="__main__":
     
     device = args.device
     data_path = args.data_path
+    save_path = os.path.join(args.feature_save_path, stage)
+    os.makedirs(save_path, exist_ok=True)
+    scores = [0, 1, 2, 3, 4]
+
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),  # match input size for AlexNet
@@ -97,6 +107,10 @@ if __name__=="__main__":
     ])
 
     #load data
+    train_save_path = os.path.join(save_path, 'train')
+    for i in range(len(scores)):
+        os.makedirs(os.path.join(train_save_path, str(scores[i])), exist_ok=True)
+
     train_dataset = ImageFolderWithPaths(os.path.join(data_path, 'train'), transform=transform) #add train data path
     dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
@@ -111,7 +125,7 @@ if __name__=="__main__":
     extract_features(model, dataloader, 
                      device = device, 
                      batch_size=1, 
-                     save_path=None)
+                     save_path=train_save_path)
 
     #patches?
 

@@ -9,18 +9,15 @@ from utils import create_patches
 from torchvision import transforms
 
 NEPOCH=400
-seeds=[]
+seeds=['34']
 BATCH_SIZE= 1
 patches = True
 stage = 'ss'
+on_test_set = False
+mod_prefix = "mod_st"
 
 def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
     model.eval()
-
-    # all_features = []
-    # all_labels = []
-    # all_ids = []
-
     with torch.no_grad():
         for i, (data, labels, filenames) in enumerate(dataloader):
             img1 = data.to(device)
@@ -42,47 +39,7 @@ def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
                 temp_save_path = os.path.join(save_path, label)
 
                 np.save(os.path.join(temp_save_path, filename + '.npy'), features[0].numpy())
-
-            # all_features.append(features.cpu())
-            # all_labels.append(labels.cpu())
-            # all_ids.append(filename)
-
-            # print(all_labels)
-            # print(all_ids)
-            break
-            # if isinstance(data, tuple):
-            #     print(len(data))
-            #     break
-            # break
-            #     if len(data)==6:
-            #         img1, img2, labels, base, _, _ = data
-            #     elif len(data)==3:
-            #         img1, labels, base = data
-            #         print(base)
-            #     else: 
-            #         raise ValueError("Unexpected dataset item format.")
-            # else:
-            #     img1 = data
-            #     labels = None
-            # img1 = img1.to(device)
-            # features = model(img1.float()) #N, C, H, W
-
-            # if patches:
-            #     features = create_patches(features, args.padding, args.patchsize, args.stride)
-            #     features = torch.nn.functional.adaptive_avg_pool2d(features, (1, 1))[:, :, 0, 0].squeeze(1)  # shape: (N, C)
-
-            # all_features.append(features.cpu())
-            # all_labels.append(labels.cpu())
-            # all_ids.extend(base)
-
-    # Stack into tensors
-    # features_tensor = torch.cat(all_features, dim=0)
-    # labels_tensor = torch.cat(all_labels, dim=0)
-
-    # return features_tensor, labels_tensor
-            
         
-
 if __name__=="__main__":
     try:
        args = parse_arguments()
@@ -94,43 +51,62 @@ if __name__=="__main__":
     
     device = args.device
     data_path = args.data_path
-    save_path = os.path.join(args.feature_save_path, stage)
-    os.makedirs(save_path, exist_ok=True)
-    scores = [0, 1, 2, 3, 4]
+    model_path = os.path.join(args.model_path, stage)
+    models = os.listdir(model_path)
+
+    for seed in seeds:
+        if isinstance(NEPOCH, dict):
+            print("Logic not built yet")
+        else:
+            if on_test_set:
+                model_name = [f for f in models if (mod_prefix in f) & (seed in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
+            else:
+                model_name = [f for f in models if (mod_prefix in f) & (seed in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
+            if len(model_name)==1:
+                model_name = str(model_name[0])
+            else:
+                print("More than one model_name: ", model_name)
+            
+        save_path = os.path.join(args.feature_save_path, stage, model_name)
+        os.makedirs(save_path, exist_ok=True)
+        scores = [0, 1, 2, 3, 4]
 
 
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # match input size for AlexNet
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
-                            std=[0.229, 0.224, 0.225]),
-    ])
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),  # match input size for AlexNet
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
+                                std=[0.229, 0.224, 0.225]),
+        ])
 
-    #load data
-    train_save_path = os.path.join(save_path, 'train')
-    for i in range(len(scores)):
-        os.makedirs(os.path.join(train_save_path, str(scores[i])), exist_ok=True)
+        #load data
+        train_save_path = os.path.join(save_path, 'train')
+        for i in range(len(scores)):
+            os.makedirs(os.path.join(train_save_path, str(scores[i])), exist_ok=True)
 
-    train_dataset = ImageFolderWithPaths(os.path.join(data_path, 'train'), transform=transform) #add train data path
-    dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        train_dataset = ImageFolderWithPaths(os.path.join(data_path, 'train'), transform=transform) #add train data path
+        dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
+        checkpoint = torch.load(os.path.join(model_path, model_name))
 
-    #load model
-    ## set seeds?
+        model = ALEXNET_nomax_pre().to(device)
+        model.load_state_dict(checkpoint['model_state_dict'])
 
-    model = ALEXNET_nomax_pre().to(device)
+        #push data through model to get feature vectors
 
-    #push data through model to get feature vectors
+        extract_features(model, dataloader, 
+                        device = device, 
+                        batch_size=1, 
+                        save_path=train_save_path)
 
-    extract_features(model, dataloader, 
-                     device = device, 
-                     batch_size=1, 
-                     save_path=train_save_path)
+        #load data
+        test_save_path = os.path.join(save_path, 'test')
+        for i in range(len(scores)):
+            os.makedirs(os.path.join(test_save_path, str(scores[i])), exist_ok=True)
 
-    #patches?
-
-
-    #final embedding
-
-
-    # save features
+        test_dataset = ImageFolderWithPaths(os.path.join(data_path, 'test'), transform=transform) 
+        dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        extract_features(model, dataloader, 
+                        device = device, 
+                        batch_size=1, 
+                        save_path=test_save_path)

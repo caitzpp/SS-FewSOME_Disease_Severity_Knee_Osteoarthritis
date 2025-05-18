@@ -40,6 +40,9 @@ def parse_arguments():
     parser.add_argument('--stage3_path_to_logs', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/logs/stage3/')
 
     parser.add_argument('--feature_save_path', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/features')
+    parser.add_argument('--model_path', type=str, default = '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/models')
+
+    
     #epochs and N for each stage
     parser.add_argument('--ss_N', type=int, default=30)
     parser.add_argument('--stage_severe_pred_N', type=int, default=30)

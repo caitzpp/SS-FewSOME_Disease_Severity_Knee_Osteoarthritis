@@ -3,14 +3,14 @@ import shutil
 from ss_fewsome.utils import get_best_epoch
 
 #TODO: make sure to run it in the SS-FewSOME_Disease_xxx dir using cd
-mod_prefix= "mod_2"
+mod_prefix= "mod_st"
 
 best_epochs = 990
 outputs_path = "./ss_fewsome/outputs"
 save_path = "./ss_fewsome/downloads"
 margin = None
 
-folders = ['models'] #'results', 'dfs', 'models', 
+folders = ['results', 'dfs','logs'] #'results', 'dfs', 'models', 
 stages = [ 'stage_severe_pred']  #'stage_severe_pred', 'stage3' , 'ss',
 
 if __name__=="__main__":

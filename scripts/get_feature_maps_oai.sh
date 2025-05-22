@@ -22,6 +22,6 @@ singularity exec --nv --no-home \
   "$SIF_FILENAME" python /workspace/"$FILENAME" \
   --data_path /data \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
-  --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
+  --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta/ \
   --device cuda \
-  --model_name mod_st \
+  --model_name mod_2 \

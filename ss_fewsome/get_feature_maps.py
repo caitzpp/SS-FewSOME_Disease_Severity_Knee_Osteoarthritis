@@ -14,7 +14,7 @@ BATCH_SIZE= 1
 patches = True
 stage = 'ss'
 on_test_set = False
-mod_prefix = "mod_st"
+#mod_prefix = "mod_2"
 
 def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
     model.eval()
@@ -49,6 +49,7 @@ if __name__=="__main__":
        print(e)
        raise
     
+    mod_prefix = args.model_name
     device = args.device
     data_path = args.data_path
     model_path = os.path.join(args.model_path, stage)

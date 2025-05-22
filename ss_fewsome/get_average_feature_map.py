@@ -38,7 +38,7 @@ def average_seeded_features(
                 os.path.join(base_dir, sd, split, label)
                 for sd in seed_dirs
             ]
-            out_label_dir = os.path.join(output_root, stage, split, label)
+            out_label_dir = os.path.join(output_root,  split, label)
             os.makedirs(out_label_dir, exist_ok=True)
 
             # assume all seed dirs have the same filenames in each label
@@ -65,9 +65,10 @@ if __name__ == "__main__":
        print("CRITICAL ERROR DURING ARGUMENT PARSING.")
        print(e)
        raise
-    
+
+    MODEL_PREFIX= args.model_name
     FEATURE_ROOT   = args.feature_save_path   # same as args.feature_save_path
-    OUTPUT_ROOT    = os.path.join(FEATURE_ROOT, 'average')  # wherever you want to dump the means
+    OUTPUT_ROOT    = os.path.join(FEATURE_ROOT, STAGE, f'average_{MODEL_PREFIX}')  # wherever you want to dump the means
     os.makedirs(OUTPUT_ROOT, exist_ok=True)
 
     average_seeded_features(

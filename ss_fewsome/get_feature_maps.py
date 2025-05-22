@@ -8,11 +8,11 @@ from load_utils import ImageFolderWithPaths
 from utils import create_patches
 from torchvision import transforms
 
-NEPOCH=990
-seeds=['1001', '138647', '193', '34', '44']
+NEPOCH=400
+seeds=['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772', '244959']
 BATCH_SIZE= 1
 patches = True
-stage = 'stage_severe_pred'
+stage = 'ss'
 on_test_set = False
 #mod_prefix = "mod_2"
 

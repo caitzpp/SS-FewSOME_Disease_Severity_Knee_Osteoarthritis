@@ -2,17 +2,17 @@ import torch
 import os
 import numpy as np
 from torch.utils.data import DataLoader
-from model import ALEXNET_nomax_pre
+from model import ALEXNET_nomax_pre, vgg16
 from setup_utils import parse_arguments
 from load_utils import ImageFolderWithPaths
 from utils import create_patches
 from torchvision import transforms
 
-NEPOCH=400
-seeds=['34']
+NEPOCH=990
+seeds=['1001', '138647', '193', '34', '44']
 BATCH_SIZE= 1
 patches = True
-stage = 'ss'
+stage = 'stage_severe_pred'
 on_test_set = False
 #mod_prefix = "mod_2"
 
@@ -90,7 +90,10 @@ if __name__=="__main__":
 
         checkpoint = torch.load(os.path.join(model_path, model_name))
 
-        model = ALEXNET_nomax_pre().to(device)
+        if stage == 'ss':
+            model = ALEXNET_nomax_pre().to(device)
+        else:
+            model = vgg16().to(args.device)
         model.load_state_dict(checkpoint['model_state_dict'])
 
         #push data through model to get feature vectors

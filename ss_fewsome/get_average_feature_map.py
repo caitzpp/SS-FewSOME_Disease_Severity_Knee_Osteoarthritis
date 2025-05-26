@@ -2,6 +2,11 @@ import os
 import numpy as np
 from setup_utils import parse_arguments
 
+# STAGE          = "stage_severe_pred"
+# NEPOCH         = "990"
+# MODEL_PREFIX   = "mod_st"
+# SEEDS          = [1001, 138647, 193, 34, 44] #['1001','138647','193','34','44','71530','875688','8765','985772','244959']
+
 STAGE          = "ss"
 NEPOCH         = "400"
 MODEL_PREFIX   = "mod_st"

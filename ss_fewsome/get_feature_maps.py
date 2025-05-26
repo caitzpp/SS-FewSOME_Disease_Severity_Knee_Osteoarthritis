@@ -8,13 +8,20 @@ from load_utils import ImageFolderWithPaths
 from utils import create_patches
 from torchvision import transforms
 
+# NEPOCH=990
+# seeds= ['1001', '138647', '193', '34', '44'] #['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772', '244959']
+# BATCH_SIZE= 1
+# patches = True
+# stage = 'stage_severe_pred'
+# on_test_set = False
+
 NEPOCH=400
-seeds=['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772', '244959']
+seeds= ['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772', '244959']
 BATCH_SIZE= 1
 patches = True
 stage = 'ss'
 on_test_set = False
-#mod_prefix = "mod_2"
+
 
 def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
     model.eval()
@@ -60,9 +67,9 @@ if __name__=="__main__":
             print("Logic not built yet")
         else:
             if on_test_set:
-                model_name = [f for f in models if (mod_prefix in f) & (seed in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
+                model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
             else:
-                model_name = [f for f in models if (mod_prefix in f) & (seed in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
+                model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
             if len(model_name)==1:
                 model_name = str(model_name[0])
             else:
@@ -76,8 +83,8 @@ if __name__=="__main__":
         transform = transforms.Compose([
             transforms.Resize((224, 224)),  # match input size for AlexNet
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
-                                std=[0.229, 0.224, 0.225]),
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
+            #                     std=[0.229, 0.224, 0.225]),
         ])
 
         #load data

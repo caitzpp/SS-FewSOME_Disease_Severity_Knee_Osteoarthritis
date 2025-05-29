@@ -95,7 +95,8 @@ def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path
     training_data.columns=['ind', 'id']
     training_data['id'] = training_data['id'].apply(lambda x: x.split('/')[-2] + '/' + x.split('/')[-1] )
     training_data = df.loc[df['id'].isin(training_data['id'].values.tolist())].reset_index(drop=True)
-    anoms=df.loc[df['sim'] < np.percentile(training_data['sim'], 95)].reset_index(drop=True)
+    #anoms=df.loc[df['sim'] < np.percentile(training_data['sim'], 95)].reset_index(drop=True)
+    anoms=df.loc[df['sim'] < np.percentile(training_data['sim'], 100)].reset_index(drop=True)
     anoms = anoms.loc[anoms['count'] == len(files) ].reset_index(drop=True)
     return anoms
 

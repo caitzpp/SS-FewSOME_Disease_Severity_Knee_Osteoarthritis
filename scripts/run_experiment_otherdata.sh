@@ -20,7 +20,7 @@ singularity exec --nv --no-home \
   -B "$DATA_FOLDER":/data \
   -B "$HOME/VT9_SSFewSOME":/home2/c.zuppinger/VT9_SSFewSOME \
   "$SIF_FILENAME" python /workspace/"$FILENAME" \
-  --data_path /data/raw/600x600_imgs \
+  --data_path "/data/600x600_imgs" \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \

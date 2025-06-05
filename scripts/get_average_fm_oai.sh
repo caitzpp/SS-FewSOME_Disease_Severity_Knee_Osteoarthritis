@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 00:05:00
+#SBATCH -t 00:30:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Feature_maps_st

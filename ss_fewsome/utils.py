@@ -105,12 +105,13 @@ def get_anoms(df, margin, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, train_ids_path
 def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, metric, current_epoch, num_pseudo_labels, model_name_prefix, model_name, args):
 
     files_total = os.listdir(path_to_anom_scores)
+    #print(files_total)
     if isinstance(current_epoch, dict):
         files=[]
         for key in current_epoch.keys():
-
             f = [f for f in files_total if ( ('epoch_' + str(current_epoch[key]) in f) &  ('seed_' + str(key) in f)  &   ('on_test_set_' not in f) &  (model_name_prefix in f)  ) ][0]
             files.append(f)
+        print(files)
 
     else:
         files = [f for f in files_total if ( ('epoch_' + str(current_epoch) in f) &  ('on_test_set_' not in f)  &  (model_name_prefix in f)  ) ]

@@ -67,12 +67,14 @@ def dclr_training(args, model_temp_name_stage, stage, pseudo_label_ids, epochs, 
         test_dataset = None
 
     if seed is not None:
-        seed = [seed]
+        seeds = [seed]
     elif stage == 'stage2':
         seeds =[1001, 138647, 193, 34, 44, 71530, 875688, 8765, 985772, 244959]
         #print(f"Using seeds {seeds}")
     else:
         seeds =[ 1001, 138647, 193, 34, 44]
+
+    print(f"Using seeds {seeds}")
     for seed in seeds:
         model = vgg16().to(args.device)
         train_dataset =  oa(args.data_path, task='train', stage= stage, semi = semi, self_supervised = self_supervised, num_ss = num_ss, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = seed, pseudo_label_ids = pseudo_label_ids)
@@ -179,14 +181,20 @@ if __name__ == '__main__':
   sys.stdout.flush()
   #stage2 is to DCLR-FewSOME_OA ITER 1
   if args.stage2:
+    #   pseudo_label_ids = pd.read_csv(os.path.join(args.dir_path, 'outputs/label_details/') + 'stage2/stage2_margin_0.8394999999999957_mod_smallimg_bs_1_task_test_lr_1e-06_shots_30_N_30dclr_fewsome_OA_iter1_pseudo_anom_labels.csv')
+    #   pseudo_label_ids = pseudo_label_ids['0'].tolist()
+      #margin = 0.8394999999999957
       pseudo_label_ids, margin = get_pseudo_labels(args.train_ids_path, stage1_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'centre_mean', current_epoch=TRAIN_PLATEAU_EPOCH, num_pseudo_labels=args.stage2_N, model_name_prefix = args.model_name, model_name=stages[2] + '/' + model_name_temp, args= args)
       shots = len(pseudo_label_ids)
       model_name_temp_stage2 =  stages[2] + '/' + 'stage2_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)  + '_N_' + str(args.stage2_N)
       pd.DataFrame(pseudo_label_ids).to_csv(os.path.join(args.dir_path,'outputs/label_details/') + model_name_temp_stage2 + 'dclr_fewsome_OA_iter1_pseudo_anom_labels.csv')
       current_epoch, stage2_path_to_anom_scores = dclr_training(args, model_name_temp_stage2, stages[2], pseudo_label_ids= pseudo_label_ids, epochs = args.stage2_epochs, current_epoch = TRAIN_PLATEAU_EPOCH, model_prefix = args.model_name, num_ss=0, self_supervised = 0, semi= 1)
+      print(f"Current Epoch: {current_epoch}")
+      #current_epoch = {'1001': 1290, '138647': 1360, '193': 1270, '34': 1220, '44': 1360, '71530': 800, '875688': 1370, '8765': 800, '985772': 1190, '244959': 1210}
+
       if args.eval_epoch == 0:
            for key in current_epoch.keys():
-               _,_ = dclr_training(args, model_name_temp_stage2, stages[2], pseudo_label_ids= pseudo_label_ids, epochs = current_epoch[key] - TRAIN_PLATEAU_EPOCH, current_epoch = TRAIN_PLATEAU_EPOCH, model_prefix = args.model_name, num_ss=0, self_supervised = 0, semi= 1, seed=int(key))
+               _,stage2_path_to_anom_scores = dclr_training(args, model_name_temp_stage2, stages[2], pseudo_label_ids= pseudo_label_ids, epochs = current_epoch[key] - TRAIN_PLATEAU_EPOCH, current_epoch = TRAIN_PLATEAU_EPOCH, model_prefix = args.model_name, num_ss=0, self_supervised = 0, semi= 1, seed=int(key))
 
   else:
       stage2_path_to_anom_scores = args.stage2_path_to_anom_scores
@@ -199,6 +207,8 @@ if __name__ == '__main__':
   print(current_epoch)
   #stage3 is to DCLR-FewSOME_OA ITER 2
   if args.stage3:
+        current_epoch = {'1001': 1290, '138647': 1360, '193': 1270, '34': 1220, '44': 1360, '71530': 800, '875688': 1370, '8765': 800, '985772': 1190, '244959': 1210}
+        print(current_epoch)
         pseudo_label_ids, margin =  get_pseudo_labels(args.train_ids_path, stage2_path_to_anom_scores, args.data_path, margin = args.start_margin, metric = 'w_centre', current_epoch=current_epoch, num_pseudo_labels=args.stage3_num_pseudo_labels, model_name_prefix = args.model_name, model_name=stages[3] + '/' + model_name_temp, args=args)
         shots = len(pseudo_label_ids)
         model_name_temp_stage3 =  stages[3] + '/' +  'stage3_' + 'margin_' + str(margin) + '_' + model_name_temp + '_shots_' + str(shots)

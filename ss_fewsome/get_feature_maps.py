@@ -20,7 +20,7 @@ seeds= ['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772'
 BATCH_SIZE= 1
 patches = True
 stage = 'ss'
-on_test_set = False
+on_test_set = True
 
 
 def extract_features(model, dataloader, device, batch_size = 1, save_path=None):
@@ -66,10 +66,10 @@ if __name__=="__main__":
         if isinstance(NEPOCH, dict):
             print("Logic not built yet")
         else:
-            if on_test_set:
-                model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
-            else:
-                model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
+            # if on_test_set:
+            #     model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
+            # else:
+            model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
             if len(model_name)==1:
                 model_name = str(model_name[0])
             else:

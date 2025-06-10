@@ -7,7 +7,7 @@ import json
 with open('./model_info.json', 'r') as f:
     best_epochs = json.load(f)
 
-mod_prefix= "mod_2"
+mod_prefix= "mod_smallimg"
 
 #print(best_epochs[mod_prefix])
 
@@ -16,7 +16,7 @@ save_path = "./ss_fewsome/downloads"
 margin = None
 
 folders = ['results', 'dfs','logs'] #'results', 'dfs', 'models', 
-stages = [ 'stage_severe_pred',  'stage3' , 'stage2', 'ss']  #'stage_severe_pred', 'stage3' , 'ss',
+stages = ['ss', 'stage2']  #'stage_severe_pred', 'stage3' , 'ss',
 
 if __name__=="__main__":
     os.makedirs(save_path, exist_ok=True)

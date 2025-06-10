@@ -21,6 +21,7 @@ __pycache__/
 # Logs
 *.log
 logs/
+*.zip
 
 # Compiled
 *.out
@@ -35,3 +36,5 @@ results/
 models/
 outputs/
 meta2/
+
+/*.zip

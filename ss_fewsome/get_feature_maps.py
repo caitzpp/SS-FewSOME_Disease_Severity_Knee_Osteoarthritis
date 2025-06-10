@@ -7,6 +7,7 @@ from setup_utils import parse_arguments
 from load_utils import ImageFolderWithPaths
 from utils import create_patches
 from torchvision import transforms
+import zipfile
 
 # NEPOCH=990
 # seeds= ['1001', '138647', '193', '34', '44'] #['1001', '138647', '193', '34', '44', '71530', '875688', '8765', '985772', '244959']
@@ -72,8 +73,39 @@ if __name__=="__main__":
             model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
             if len(model_name)==1:
                 model_name = str(model_name[0])
-            else:
+            elif len(model_name)>1:
                 print("More than one model_name: ", model_name)
+            else:
+                print("Model not found directly. Attempting to find in zip...")
+
+                zip_path = os.path.join(args.dir_path, "outputs_zipped.zip")
+                target_subfolder = f"models/{stage}/"
+
+                model_name = None
+
+                if os.path.exists(zip_path):
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        candidates = [f for f in zip_ref.namelist()
+                                    if (target_subfolder in f)
+                                    and (mod_prefix in f)
+                                    and (f"seed_{seed}" in f)
+                                    and ("on_test_set" not in f)
+                                    and (str(NEPOCH) in f)
+                                    #and f.endswith(".pth")
+                                    ]
+                        if len(candidates) == 1:
+                                model_name = os.path.basename(candidates[0])
+                                dest_path = os.path.join(model_path, model_name)
+                                os.makedirs(model_path, exist_ok=True)
+                                zip_ref.extract(candidates[0], path=args.model_path)  # Extract to args.model_path
+                                
+                                # Move extracted file to expected location (flatten structure)
+                                extracted_path = os.path.join(args.model_path, candidates[0])
+                                os.rename(extracted_path, dest_path)
+                        else:
+                            raise FileNotFoundError(f"Model with seed {seed} not found in zip or multiple candidates.")
+                else:
+                    raise FileNotFoundError(f"Model file not found and zip archive does not exist: {zip_path}")
             
         save_path = os.path.join(args.feature_save_path, stage, model_name)
         os.makedirs(save_path, exist_ok=True)

@@ -3,7 +3,7 @@
 #SBATCH -t 00:30:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
-#SBATCH --job-name=Feature_maps_st
+#SBATCH --job-name=Feature_maps_oai
 #SBATCH --output=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Logs/feature_maps_%j.out     # Save stdout to file
 #SBATCH --error=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Errors/feature_maps_%j.err      # Save stderr to file
 

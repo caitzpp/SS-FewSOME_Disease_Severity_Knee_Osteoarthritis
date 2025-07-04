@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 00:05:00
+#SBATCH -t 00:15:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Feature_maps_st
@@ -25,4 +25,4 @@ singularity exec --nv --no-home \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
   --model_name mod_st \
-  --feature_save_path '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/features_woNorm' \
+  --feature_save_path '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/features' \

@@ -38,3 +38,6 @@ outputs/
 meta2/
 
 /*.zip
+
+*.env
+*.venv

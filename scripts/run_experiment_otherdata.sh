@@ -24,6 +24,12 @@ singularity exec --nv --no-home \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
-  --eval_epoch 0 \
+  --eval_epoch 1 \
   --save_models 2 \
   --model_name mod_smallimg \
+  --use_wandb 1 \
+  --train_ss 1 \
+  --stage2 0 \
+  --stage3 0 \
+  --stage_severe_pred 0 \
+  --seed 1001 \

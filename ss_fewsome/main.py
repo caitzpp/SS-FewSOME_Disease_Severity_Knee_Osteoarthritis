@@ -18,13 +18,16 @@ import torch.multiprocessing
 from train import *
 from setup_utils import parse_arguments
 import sys
+import wandb
+from dotenv import load_dotenv
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 TRAIN_PLATEAU_EPOCH = 400
 SEVERE_PRED_EPOCH = 990
 
 def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervised, semi, seed = None, eval_epoch = 1): #trains the model and evaluates every 10 epochs for all seeds OR trains the model for a specific number of epochs for specified seed
-
+  use_wandb = args.use_wandb
   print("Trying to load val_dataset")
   sys.stdout.flush()
   val_dataset =  oa(args.data_path, task = 'test_on_train', train_info_path = args.train_ids_path)
@@ -47,7 +50,31 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
       train_dataset =  oa(args.data_path, task='train', stage='ss', N = N, shots = shots, semi = semi, self_supervised = self_supervised, num_ss = num_ss, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = seed)
       print(f"Training with {len(train_dataset)} samples")
       #print(f"First 5 paths:" {train_dataset.paths[:5]})
-      train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset )
+      if use_wandb == 1:
+            run = wandb.init(project="SS-Fewsome", name=model_name_temp_ss + '_seed_' + str(seed), config= {
+                    "epochs": epochs,
+                    "seed": seed,
+                    "model_name": model_name_temp_ss + '_seed_' + str(seed),
+                    "N": N,
+                    "shots": shots,
+                    "patches": True,
+                    "eval_epoch": eval_epoch,
+                    "lr": args.lr,
+                    "bs": args.bs,
+                    "weight_decay": 0.1,
+                    "metric": 'centre_mean',
+                # "model_parameters": model.parameters(),
+                })
+            wandb_config = wandb.config
+            train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, 
+                  model_name = wandb_config.model_name, args=args, 
+                  current_epoch=current_epoch, metric=wandb_config.metric, 
+                  patches =wandb_config.patches, test_dataset = test_dataset, 
+                  use_wandb=use_wandb,
+                  weight_decay=wandb_config.weight_decay
+                   , lr = wandb_config.lr, bs = wandb_config.bs)
+      else:
+            train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset, use_wandb=use_wandb )
       print("Training Done")
       del model
       print("Model Deleted")
@@ -162,6 +189,10 @@ if __name__ == '__main__':
        exit()
 
   if args.train_ss:
+      if args.use_wandb == 1:
+          dotenv_path = os.path.join(args.dir_path, '.env')
+          load_dotenv(dotenv_path)
+          wandb.login(key=os.getenv("WANDB_API_KEY"))
       print("Trying self-supervised Training")
       sys.stdout.flush()
       model_name_temp_ss = stages[0] + '/' + 'ss_training_' + model_name_temp  + '_N_' + str(args.ss_N)

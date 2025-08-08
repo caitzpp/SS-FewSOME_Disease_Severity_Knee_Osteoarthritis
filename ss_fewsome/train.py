@@ -9,6 +9,7 @@ from utils import *
 from sklearn.metrics import roc_curve, auc
 import sys
 import os
+import wandb
 
 
 class ContrastiveLoss(torch.nn.Module):
@@ -53,9 +54,30 @@ def centre_sim(padding, patchsize, stride, ref_dataset, model, dev, shots):
         return F.cosine_similarity(c, c_anom, dim=0).cpu().numpy()
 
 
-def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name, args, current_epoch=0, metric='centre_mean', patches = True, test_dataset = None):
+def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name, args, current_epoch=0, 
+          weight_decay= 0.1, metric='centre_mean', patches = True, test_dataset = None, use_wandb = 0,
+          lr = 1e-6, bs = 1, ):
 
-  optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.1)
+
+#   if use_wandb == 1:
+#        run = wandb.init(project="SS-Fewsome", name=model_name + "_" + str(seed), config= {
+#             "epochs": epochs,
+#             "seed": seed,
+#             "model_name": model_name,
+#             "N": N,
+#             "shots": shots,
+#             "patches": patches,
+#             "eval_epoch": eval_epoch,
+#             "device": args.device,
+#             "lr": args.lr,
+#             "bs": args.bs,
+#             "optimizer_weight_decay": weight_decay,
+#             "metric": metric,
+#            # "model_parameters": model.parameters(),
+#         })
+#        wandb_config = wandb.config
+
+  optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
   train_indexes = list(range(0, train_dataset.__len__()))
   print(f"Length Train Dataset {train_dataset.__len__()}")
   criterion = ContrastiveLoss(args.device)
@@ -101,7 +123,7 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
       np.random.seed(epoch*seed)
       np.random.shuffle(train_indexes)
 
-      batches = list(create_batches(train_indexes, args.bs))
+      batches = list(create_batches(train_indexes, bs))
 
       for batch_ind in range(len(batches)):
          
@@ -204,12 +226,15 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
        
       train_losses.append((loss_sum / len(batches)))
       print("Epoch: {}, Train loss: {}".format(epoch+1, train_losses[-1]))
+
+      if use_wandb==1:
+            wandb.log({"train_loss": train_losses[-1], "train_auc": train_auc, "epoch": epoch+1})
        
 
 
       if eval_epoch == 1:
 
-          if (epoch % 10 == 0):
+          if (epoch % 10 == 0): #if epoch is divisible by 10
               if args.get_oarsi_results:
                     df, results, ref_info,ref_std,oarsi_res = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, val_dataset, model, args.data_path, criterion, args.device, shots,  args.meta_data_dir, args.get_oarsi_results)
               else:
@@ -247,6 +272,21 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
                   write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
               else:
                   write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
+              
+              if use_wandb==1:
+                  wandb.log({"train_auc": results.loc[metric, 'auc'],
+                            "train_auc_mid": results.loc[metric, 'auc_mid'],
+                            "train_auc_mid2": results.loc[metric, 'auc_mid2'],
+                            "train_auc_sev": results.loc[metric, 'auc_sev'],
+                            "train_spearman": results.loc[metric, 'spearman'],
+                            #"epoch": epoch+1,
+                            "train_ref_max": ref_info['max'][0],
+                            "train_ref_min": ref_info['min'][0],
+                            "train_ref_sum": ref_info['sum'][0],
+                            "train_ref_mean": ref_info['mean'][0],
+                            "train_ref_var": ref_info['var'][0],
+                            "train_ref_centre": ref_info['c'][0] if shots > 0 else None
+                           })
 
 
               if test_dataset is not None:
@@ -276,8 +316,24 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
                            write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
                        else:
                            write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
+                    
+                       if use_wandb==1:
+                            wandb.log({"test_auc": results.loc[metric, 'auc'],
+                                          "test_auc_mid": results.loc[metric, 'auc_mid'],
+                                          "test_auc_mid2": results.loc[metric, 'auc_mid2'],
+                                          "test_auc_sev": results.loc[metric, 'auc_sev'],
+                                          "test_spearman": results.loc[metric, 'spearman'],
+                                          #"epoch": epoch+1,
+                                          "test_ref_max": ref_info['max'][0],
+                                          "test_ref_min": ref_info['min'][0],
+                                          "test_ref_sum": ref_info['sum'][0],
+                                          "test_ref_mean": ref_info['mean'][0],
+                                          "test_ref_var": ref_info['var'][0],
+                                          "test_ref_centre": ref_info['c'][0] if shots > 0 else None
+                                         })
 
-
+      if use_wandb == 1:
+          wandb.finish()
       if (epoch % 10 == 0) & (eval_epoch ==0):
           if shots > 0:
               ref_c.append( centre_sim( args.padding,args.patchsize, args.stride, train_dataset, model, args.device, shots))

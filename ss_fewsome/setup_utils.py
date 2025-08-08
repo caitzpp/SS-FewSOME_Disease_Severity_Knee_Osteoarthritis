@@ -74,6 +74,8 @@ def parse_arguments():
     parser.add_argument('--max_margin', type=float, default=4.0)
     parser.add_argument('--stage3_num_pseudo_labels', type=float, default=263)
 
+    parser.add_argument('--use_wandb', type = int, default=0)
+
 
 
     args = parser.parse_args()

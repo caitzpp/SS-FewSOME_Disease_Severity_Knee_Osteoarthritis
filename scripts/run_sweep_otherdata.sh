@@ -14,7 +14,7 @@ SIF_FILENAME="my-python311-env.sif"
 # --- WandB config ---
 # export WANDB_ENTITY=<YOUR_ENTITY>
 # export WANDB_PROJECT=<YOUR_PROJECT>
-export SWEEP_ID="<ENTITY>/<PROJECT>/sweeps/abc123"
+export SWEEP_ID="compvis_cz/SS-Fewsome/pap7rxwv"
 export WANDB_API_KEY=<YOUR_API_KEY>
 export WANDB_DIR=/workspace/.wandb
 export WANDB_CACHE_DIR=/workspace/cache
@@ -45,5 +45,5 @@ singularity exec --nv --no-home \
   -B "$HOME/VT9_SSFewSOME":/home2/c.zuppinger/VT9_SSFewSOME \
   "$SIF_FILENAME" bash -lc "
     cd /workspace
-    python -m wandb agent \"$SWEEP_ID\" --count 1 -- ${FIXED_FLAGS[*]}
+    python -m wandb agent \"$SWEEP_ID\" -- ${FIXED_FLAGS[*]}
 "

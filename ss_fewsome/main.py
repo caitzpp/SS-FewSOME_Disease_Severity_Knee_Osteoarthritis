@@ -52,18 +52,18 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
       #print(f"First 5 paths:" {train_dataset.paths[:5]})
       if use_wandb == 1:
             run = wandb.init(project="SS-Fewsome", name=model_name_temp_ss + '_seed_' + str(seed), config= {
-                    "epochs": epochs,
-                    "seed": seed,
-                    "model_name": model_name_temp_ss + '_seed_' + str(seed),
-                    "N": N,
-                    "shots": shots,
-                    "patches": True,
-                    "eval_epoch": eval_epoch,
-                    "lr": args.lr,
-                    "bs": args.bs,
-                    "weight_decay": 0.1,
-                    "metric": 'centre_mean',
-                # "model_parameters": model.parameters(),
+                #     "epochs": epochs,
+                #     "seed": seed,
+                #     "model_name": model_name_temp_ss + '_seed_' + str(seed),
+                #     "N": N,
+                #     "shots": shots,
+                #     "patches": True,
+                #     "eval_epoch": eval_epoch,
+                #     "lr": args.lr,
+                #     "bs": args.bs,
+                #     "weight_decay": 0.1,
+                #     "metric": 'centre_mean',
+                # # "model_parameters": model.parameters(),
                 })
             wandb_config = wandb.config
             train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, 
@@ -72,7 +72,9 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
                   patches =wandb_config.patches, test_dataset = test_dataset, 
                   use_wandb=use_wandb,
                   weight_decay=wandb_config.weight_decay
-                   , lr = wandb_config.lr, bs = wandb_config.bs)
+                   , lr = wandb_config.lr, bs = wandb_config.bs, beta1 = wandb_config.beta1,
+                    beta2 = wandb_config.beta2,
+                    eps = wandb_config.eps)
       else:
             train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset, use_wandb=use_wandb )
       print("Training Done")

@@ -12,4 +12,4 @@
 export SINGULARITY_TMPDIR=$HOME/tmp
 export SINGULARITY_CACHEDIR=$HOME/.singularity
 
-singularity pull my-python311-env.sif docker://caitlynzuppinger/my-python311-env:latest
+singularity pull --force my-python311-env.sif docker://caitlynzuppinger/my-python311-env:latest

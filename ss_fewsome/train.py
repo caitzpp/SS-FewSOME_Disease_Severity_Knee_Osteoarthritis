@@ -58,25 +58,6 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
           weight_decay= 0.1, metric='centre_mean', patches = True, test_dataset = None, use_wandb = 0,
           lr = 1e-6, bs = 1, ):
 
-
-#   if use_wandb == 1:
-#        run = wandb.init(project="SS-Fewsome", name=model_name + "_" + str(seed), config= {
-#             "epochs": epochs,
-#             "seed": seed,
-#             "model_name": model_name,
-#             "N": N,
-#             "shots": shots,
-#             "patches": patches,
-#             "eval_epoch": eval_epoch,
-#             "device": args.device,
-#             "lr": args.lr,
-#             "bs": args.bs,
-#             "optimizer_weight_decay": weight_decay,
-#             "metric": metric,
-#            # "model_parameters": model.parameters(),
-#         })
-#        wandb_config = wandb.config
-
   optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
   train_indexes = list(range(0, train_dataset.__len__()))
   print(f"Length Train Dataset {train_dataset.__len__()}")

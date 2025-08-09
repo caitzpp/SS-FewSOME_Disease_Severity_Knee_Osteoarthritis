@@ -41,5 +41,5 @@ singularity exec --nv --no-home \
   --stage3 0 \
   --stage_severe_pred 0 \
   --wandb_agent compvis_cz/SS-Fewsome/pap7rxwv \
-  --sweep_count 1 \
+  --sweep_count 500 \
  

@@ -41,3 +41,5 @@ meta2/
 
 *.env
 *.venv
+/.wandb/
+/.wandb_cache/

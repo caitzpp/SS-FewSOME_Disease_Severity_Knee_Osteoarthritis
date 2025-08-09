@@ -1,6 +1,6 @@
 program: /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py
 project: SS-Fewsome
-name: test_sweep
+name: test_sweep2
 method: bayes
 metric:
   name: train_loss

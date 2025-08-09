@@ -53,6 +53,21 @@ def centre_sim(padding, patchsize, stride, ref_dataset, model, dev, shots):
         c_anom = create_centre(mat_anom)
         return F.cosine_similarity(c, c_anom, dim=0).cpu().numpy()
 
+def _normalize_ref_info(ref_info, shots):
+    import pandas as pd
+    if isinstance(ref_info, pd.Series):
+        ref_info = ref_info.to_frame().T
+    elif not isinstance(ref_info, pd.DataFrame):
+        ref_info = pd.DataFrame(ref_info)
+    if shots > 0 and ref_info.shape[1] >= 6:
+        ref_info = ref_info.iloc[:, :6]
+        ref_info.columns = ['max','min','sum','mean','var','c']
+    elif ref_info.shape[1] >= 5:
+        ref_info = ref_info.iloc[:, :5]
+        ref_info.columns = ['max','min','sum','mean','var']
+    else:
+        return None  # unexpected shape
+    return ref_info
 
 def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name, args, current_epoch=0, 
           weight_decay= 0.1, metric='centre_mean', patches = True, test_dataset = None, use_wandb = 0,
@@ -218,105 +233,103 @@ def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots,
       if eval_epoch == 1:
 
           if (epoch % 10 == 0): #if epoch is divisible by 10
-              if args.get_oarsi_results:
-                    df, results, ref_info,ref_std,oarsi_res = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, val_dataset, model, args.data_path, criterion, args.device, shots,  args.meta_data_dir, args.get_oarsi_results)
-              else:
-                    df, results, ref_info,ref_std = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, val_dataset, model, args.data_path, criterion, args.device, shots,  args.meta_data_dir, args.get_oarsi_results)
+                if args.get_oarsi_results:
+                        df, results, ref_info,ref_std,oarsi_res = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, val_dataset, model, args.data_path, criterion, args.device, shots,  args.meta_data_dir, args.get_oarsi_results)
+                else:
+                        df, results, ref_info,ref_std = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, val_dataset, model, args.data_path, criterion, args.device, shots,  args.meta_data_dir, args.get_oarsi_results)
+                ref_info = _normalize_ref_info(ref_info, shots)
+                oas.append(results.loc[metric, 'auc'])
+                mid.append(results.loc[metric,'auc_mid'])
+                mid_2.append(results.loc[metric,'auc_mid2'])
+                sevs.append(results.loc[metric, 'auc_sev'])
+                sps.append(results.loc[metric, 'spearman'])
+                trs.append(train_losses[-1])
+                train_aucs.append(train_auc)
+                if shots > 0:
+                    ref_info.columns = ['max','min','sum', 'mean','var', 'c']
+                    ref_c.append(ref_info['c'][0])
+                else:
+                    ref_info.columns = ['max','min','sum', 'mean','var']
 
-              oas.append(results.loc[metric, 'auc'])
-              mid.append(results.loc[metric,'auc_mid'])
-              mid_2.append(results.loc[metric,'auc_mid2'])
-              sevs.append(results.loc[metric, 'auc_sev'])
-              sps.append(results.loc[metric, 'spearman'])
-              trs.append(train_losses[-1])
-              train_aucs.append(train_auc)
-              if shots > 0:
-                   ref_info.columns = ['max','min','sum', 'mean','var', 'c']
-                   ref_c.append(ref_info['c'][0])
-              else:
-                   ref_info.columns = ['max','min','sum', 'mean','var']
+                ref_max.append(ref_info['max'][0])
+                ref_min.append(ref_info['min'][0])
+                ref_sum.append(ref_info['sum'][0])
+                ref_mean.append(ref_info['mean'][0])
+                ref_var.append(ref_info['var'][0])
+                channel_std.append(np.mean(ref_std.iloc[:,0]))
+                assert len(ref_var) == len(sevs)
+                logs_df = pd.concat([pd.DataFrame(oas, columns=['OA>0']),  pd.DataFrame(mid, columns=['OA>1']),pd.DataFrame(mid_2, columns=['OA>2']), pd.DataFrame(sevs, columns=['OA>3']), pd.DataFrame(sps, columns=['spearman']),
+                pd.DataFrame(trs, columns=['train_loss']), pd.DataFrame(train_aucs, columns=['train_auc']),
+                pd.DataFrame(ref_max, columns=['ref_max']), pd.DataFrame(ref_min, columns=['ref_min']), pd.DataFrame(ref_sum, columns=['ref_sum']), pd.DataFrame(ref_mean, columns=['ref_mean']), pd.DataFrame(ref_var, columns=['ref_var']),
+                pd.DataFrame(ref_c, columns=['ref_centre']) , pd.DataFrame(channel_std, columns=['channel_std']) ,
+                ], axis =1)
+                if shots > 0:
+                    logs_df=pd.concat([logs_df, pd.DataFrame(ref_c, columns=['ref_centre']) ], axis =1)
 
-              ref_max.append(ref_info['max'][0])
-              ref_min.append(ref_info['min'][0])
-              ref_sum.append(ref_info['sum'][0])
-              ref_mean.append(ref_info['mean'][0])
-              ref_var.append(ref_info['var'][0])
-              channel_std.append(np.mean(ref_std.iloc[:,0]))
-              assert len(ref_var) == len(sevs)
-              logs_df = pd.concat([pd.DataFrame(oas, columns=['OA>0']),  pd.DataFrame(mid, columns=['OA>1']),pd.DataFrame(mid_2, columns=['OA>2']), pd.DataFrame(sevs, columns=['OA>3']), pd.DataFrame(sps, columns=['spearman']),
-              pd.DataFrame(trs, columns=['train_loss']), pd.DataFrame(train_aucs, columns=['train_auc']),
-              pd.DataFrame(ref_max, columns=['ref_max']), pd.DataFrame(ref_min, columns=['ref_min']), pd.DataFrame(ref_sum, columns=['ref_sum']), pd.DataFrame(ref_mean, columns=['ref_mean']), pd.DataFrame(ref_var, columns=['ref_var']),
-              pd.DataFrame(ref_c, columns=['ref_centre']) , pd.DataFrame(channel_std, columns=['channel_std']) ,
-              ], axis =1)
-              if shots > 0:
-                  logs_df=pd.concat([logs_df, pd.DataFrame(ref_c, columns=['ref_centre']) ], axis =1)
-
-              if args.get_oarsi_results:
-                  write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
-              else:
-                  write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
-              
-              if use_wandb==1:
-                  wandb.log({"train_auc": results.loc[metric, 'auc'],
-                            "train_auc_mid": results.loc[metric, 'auc_mid'],
-                            "train_auc_mid2": results.loc[metric, 'auc_mid2'],
-                            "train_auc_sev": results.loc[metric, 'auc_sev'],
-                            "train_spearman": results.loc[metric, 'spearman'],
-                            #"epoch": epoch+1,
-                            "train_ref_max": ref_info['max'][0],
-                            "train_ref_min": ref_info['min'][0],
-                            "train_ref_sum": ref_info['sum'][0],
-                            "train_ref_mean": ref_info['mean'][0],
-                            "train_ref_var": ref_info['var'][0],
-                            "train_ref_centre": ref_info['c'][0] if shots > 0 else None
-                           })
-
-
-              if test_dataset is not None:
-                       if args.get_oarsi_results:
-                           df, results, ref_info,ref_std,oarsi_res = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, test_dataset, model, args.data_path, criterion, args.device, shots, args.meta_data_dir, args.get_oarsi_results)
-                       else:
-                           df, results, ref_info,ref_std = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, test_dataset, model, args.data_path, criterion, args.device, shots, args.meta_data_dir, args.get_oarsi_results)
+                if args.get_oarsi_results:
+                    write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
+                else:
+                    write_results(df, results, model_name, logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
+                
+                if use_wandb==1:
+                    wandb.log({"train_auc": results.loc[metric, 'auc'],
+                                "train_auc_mid": results.loc[metric, 'auc_mid'],
+                                "train_auc_mid2": results.loc[metric, 'auc_mid2'],
+                                "train_auc_sev": results.loc[metric, 'auc_sev'],
+                                "train_spearman": results.loc[metric, 'spearman'],
+                                #"epoch": epoch+1,
+                                "train_ref_max": ref_info['max'][0],
+                                "train_ref_min": ref_info['min'][0],
+                                "train_ref_sum": ref_info['sum'][0],
+                                "train_ref_mean": ref_info['mean'][0],
+                                "train_ref_var": ref_info['var'][0],
+                                "train_ref_centre": ref_info['c'][0] if shots > 0 else None
+                            })
 
 
-                       oas_test.append(results.loc[metric, 'auc'])
-                       mid_test.append(results.loc[metric,'auc_mid'])
-                       mid_2_test.append(results.loc[metric,'auc_mid2'])
-                       sevs_test.append(results.loc[metric, 'auc_sev'])
-                       sps_test.append(results.loc[metric, 'spearman'])
+                if test_dataset is not None:
+                        if args.get_oarsi_results:
+                            df, results, ref_info,ref_std,oarsi_res = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, test_dataset, model, args.data_path, criterion, args.device, shots, args.meta_data_dir, args.get_oarsi_results)
+                        else:
+                            df, results, ref_info,ref_std = evaluate_severity(patches, args.padding,args.patchsize, args.stride,seed, train_dataset, test_dataset, model, args.data_path, criterion, args.device, shots, args.meta_data_dir, args.get_oarsi_results)
+                        ref_info = _normalize_ref_info(ref_info, shots)
+
+                        oas_test.append(results.loc[metric, 'auc'])
+                        mid_test.append(results.loc[metric,'auc_mid'])
+                        mid_2_test.append(results.loc[metric,'auc_mid2'])
+                        sevs_test.append(results.loc[metric, 'auc_sev'])
+                        sps_test.append(results.loc[metric, 'spearman'])
 
 
-                       logs_df = pd.concat([pd.DataFrame(oas_test, columns=['OA>0']),  pd.DataFrame(mid_test, columns=['OA>1']),pd.DataFrame(mid_2_test, columns=['OA>2']), pd.DataFrame(sevs_test, columns=['OA>3']), pd.DataFrame(sps_test, columns=['spearman']),
-                       pd.DataFrame(trs, columns=['train_loss']), pd.DataFrame(train_aucs, columns=['train_auc']),
-                       pd.DataFrame(ref_max, columns=['ref_max']), pd.DataFrame(ref_min, columns=['ref_min']), pd.DataFrame(ref_sum, columns=['ref_sum']), pd.DataFrame(ref_mean, columns=['ref_mean']), pd.DataFrame(ref_var, columns=['ref_var']),
-                      pd.DataFrame(channel_std, columns=['channel_std']) ,
-                       ], axis =1)
+                        logs_df = pd.concat([pd.DataFrame(oas_test, columns=['OA>0']),  pd.DataFrame(mid_test, columns=['OA>1']),pd.DataFrame(mid_2_test, columns=['OA>2']), pd.DataFrame(sevs_test, columns=['OA>3']), pd.DataFrame(sps_test, columns=['spearman']),
+                        pd.DataFrame(trs, columns=['train_loss']), pd.DataFrame(train_aucs, columns=['train_auc']),
+                        pd.DataFrame(ref_max, columns=['ref_max']), pd.DataFrame(ref_min, columns=['ref_min']), pd.DataFrame(ref_sum, columns=['ref_sum']), pd.DataFrame(ref_mean, columns=['ref_mean']), pd.DataFrame(ref_var, columns=['ref_var']),
+                        pd.DataFrame(channel_std, columns=['channel_std']) ,
+                        ], axis =1)
 
-                       if shots > 0:
-                           logs_df=pd.concat([logs_df, pd.DataFrame(ref_c, columns=['ref_centre']) ], axis =1)
+                        if shots > 0:
+                            logs_df=pd.concat([logs_df, pd.DataFrame(ref_c, columns=['ref_centre']) ], axis =1)
 
-                       if args.get_oarsi_results:
-                           write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
-                       else:
-                           write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
-                    
-                       if use_wandb==1:
-                            wandb.log({"test_auc": results.loc[metric, 'auc'],
-                                          "test_auc_mid": results.loc[metric, 'auc_mid'],
-                                          "test_auc_mid2": results.loc[metric, 'auc_mid2'],
-                                          "test_auc_sev": results.loc[metric, 'auc_sev'],
-                                          "test_spearman": results.loc[metric, 'spearman'],
-                                          #"epoch": epoch+1,
-                                          "test_ref_max": ref_info['max'][0],
-                                          "test_ref_min": ref_info['min'][0],
-                                          "test_ref_sum": ref_info['sum'][0],
-                                          "test_ref_mean": ref_info['mean'][0],
-                                          "test_ref_var": ref_info['var'][0],
-                                          "test_ref_centre": ref_info['c'][0] if shots > 0 else None
-                                         })
+                        if args.get_oarsi_results:
+                            write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args, oarsi_res)
+                        else:
+                            write_results(df, results, model_name + '_on_test_set', logs_df, current_epoch+epoch, model, optimizer, ref_std, args)
+                        
+                        if use_wandb==1:
+                                wandb.log({"test_auc": results.loc[metric, 'auc'],
+                                            "test_auc_mid": results.loc[metric, 'auc_mid'],
+                                            "test_auc_mid2": results.loc[metric, 'auc_mid2'],
+                                            "test_auc_sev": results.loc[metric, 'auc_sev'],
+                                            "test_spearman": results.loc[metric, 'spearman'],
+                                            #"epoch": epoch+1,
+                                            "test_ref_max": ref_info['max'][0],
+                                            "test_ref_min": ref_info['min'][0],
+                                            "test_ref_sum": ref_info['sum'][0],
+                                            "test_ref_mean": ref_info['mean'][0],
+                                            "test_ref_var": ref_info['var'][0],
+                                            "test_ref_centre": ref_info['c'][0] if shots > 0 else None
+                                            })
 
-      if use_wandb == 1:
-          wandb.finish()
       if (epoch % 10 == 0) & (eval_epoch ==0):
           if shots > 0:
               ref_c.append( centre_sim( args.padding,args.patchsize, args.stride, train_dataset, model, args.device, shots))

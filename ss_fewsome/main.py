@@ -50,31 +50,40 @@ def ss_training(args, model_temp_name_ss, N, epochs, num_ss, shots, self_supervi
       train_dataset =  oa(args.data_path, task='train', stage='ss', N = N, shots = shots, semi = semi, self_supervised = self_supervised, num_ss = num_ss, augmentations = args.augmentations, normal_augs = args.normal_augs, train_info_path = args.train_ids_path, seed = seed)
       print(f"Training with {len(train_dataset)} samples")
       #print(f"First 5 paths:" {train_dataset.paths[:5]})
+      def sweep_train():
+                run = wandb.init(project="SS-Fewsome", name=model_name_temp_ss + '_seed_' + str(seed), config= {
+                        "epochs": epochs,
+                        "seed": seed,
+                        "model_name": model_name_temp_ss + '_seed_' + str(seed),
+                        "N": N,
+                        "shots": shots,
+                        "patches": True,
+                        "eval_epoch": eval_epoch,
+                        "lr": args.lr,
+                        "bs": args.bs,
+                        "weight_decay": 0.1,
+                        "metric": 'centre_mean',
+                    })
+                wandb_config = wandb.config
+                train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, 
+                    model_name = wandb_config.model_name, args=args, 
+                    current_epoch=current_epoch, metric=wandb_config.metric, 
+                    patches =wandb_config.patches, test_dataset = test_dataset, 
+                    use_wandb=use_wandb,
+                    weight_decay=wandb_config.weight_decay
+                    , lr = wandb_config.lr, bs = wandb_config.bs, beta1 = wandb_config.beta1,
+                        beta2 = wandb_config.beta2,
+                        n_eps = float(wandb_config.eps))
       if use_wandb == 1:
-            run = wandb.init(project="SS-Fewsome", name=model_name_temp_ss + '_seed_' + str(seed), config= {
-                #     "epochs": epochs,
-                #     "seed": seed,
-                #     "model_name": model_name_temp_ss + '_seed_' + str(seed),
-                #     "N": N,
-                #     "shots": shots,
-                #     "patches": True,
-                #     "eval_epoch": eval_epoch,
-                #     "lr": args.lr,
-                #     "bs": args.bs,
-                #     "weight_decay": 0.1,
-                #     "metric": 'centre_mean',
-                # # "model_parameters": model.parameters(),
-                })
-            wandb_config = wandb.config
-            train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, 
-                  model_name = wandb_config.model_name, args=args, 
-                  current_epoch=current_epoch, metric=wandb_config.metric, 
-                  patches =wandb_config.patches, test_dataset = test_dataset, 
-                  use_wandb=use_wandb,
-                  weight_decay=wandb_config.weight_decay
-                   , lr = wandb_config.lr, bs = wandb_config.bs, beta1 = wandb_config.beta1,
-                    beta2 = wandb_config.beta2,
-                    eps = wandb_config.eps)
+            sweep_id = args.wandb_agent
+
+            if sweep_id is not None:
+                wandb.agent(sweep_id=sweep_id,
+                            count=args.sweep_count
+                            , function=sweep_train)
+            else:
+                sweep_train()
+        
       else:
             train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name_temp_ss + '_seed_' + str(seed), args, current_epoch, metric='centre_mean', patches =True, test_dataset = test_dataset, use_wandb=use_wandb )
       print("Training Done")

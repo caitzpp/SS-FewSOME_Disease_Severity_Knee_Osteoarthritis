@@ -75,6 +75,8 @@ def parse_arguments():
     parser.add_argument('--stage3_num_pseudo_labels', type=float, default=263)
 
     parser.add_argument('--use_wandb', type = int, default=0)
+    parser.add_argument('--wandb_agent', type=str, default=None)
+    parser.add_argument('--sweep_count', type=int, default=1)
 
 
 

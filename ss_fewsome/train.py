@@ -57,10 +57,10 @@ def centre_sim(padding, patchsize, stride, ref_dataset, model, dev, shots):
 def train(train_dataset, val_dataset, N, model, epochs, seed, eval_epoch, shots, model_name, args, current_epoch=0, 
           weight_decay= 0.1, metric='centre_mean', patches = True, test_dataset = None, use_wandb = 0,
           lr = 1e-6, bs = 1,
-           beta1 = 0.9, beta2 = 0.999, eps = 1e-08):
+           beta1 = 0.9, beta2 = 0.999, n_eps = 1e-08):
 
   optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay,
-                         betas=(beta1, beta2), eps=eps)
+                         betas=(beta1, beta2), eps=n_eps)
   train_indexes = list(range(0, train_dataset.__len__()))
   print(f"Length Train Dataset {train_dataset.__len__()}")
   criterion = ContrastiveLoss(args.device)

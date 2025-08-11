@@ -41,5 +41,6 @@ meta2/
 
 *.env
 *.venv
-/.wandb/
-/.wandb_cache/
+.wandb/
+.wandb_cache/
+wandb_agents.txt

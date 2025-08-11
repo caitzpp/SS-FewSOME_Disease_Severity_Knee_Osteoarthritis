@@ -213,45 +213,57 @@ def get_pseudo_labels(train_ids_path, path_to_anom_scores, data_path, margin, me
 
 
 
+def save_latest(model, optimizer, epoch, res_name, args):
+    models_dir = os.path.join(args.dir_path, 'outputs/models/')
+    # models_dir.mkdir(parents=True, exists_ok=True)
+    model_path = os.path.join(models_dir, f'{res_name}_latest.pt')
 
+    payload = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch
+    }
 
+    torch.save(payload, model_path)
 
 def write_results(df, results, res_name, logs_df, epoch, model, optimizer, ref_std, args, oarsi_res=None):
 
 
-      try:
-          logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/{}').format(res_name))
-      except:
-          pass
+    try:
+        logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/{}').format(res_name))
+    except:
+        pass
 
-      results.to_csv(os.path.join(args.dir_path, 'outputs/results/') + res_name  + '_epoch_' +str(epoch) )
+    results.to_csv(os.path.join(args.dir_path, 'outputs/results/') + res_name  + '_epoch_' +str(epoch) )
 
-      if oarsi_res is not None:
-          oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi/')  + res_name  + '_epoch_' +str(epoch) )
+    if oarsi_res is not None:
+        oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi/')  + res_name  + '_epoch_' +str(epoch) )
 
 
-      if args.save_models == 1:
+    if args.save_models == 1:
         torch.save({
-          'model_state_dict': model.state_dict(),
-          'optimizer_state_dict': optimizer.state_dict()
-          }, os.path.join(args.dir_path, 'outputs/models/')  + res_name  + '_epoch_' +str(epoch))
-
-      elif args.save_models == 2:
-          models = os.listdir(os.path.join(args.dir_path, 'outputs/models/') )
-          for mod in models:
-             if res_name in mod:
-              os.remove(os.path.join(args.dir_path, 'outputs/models/')  + mod)
-
-          torch.save({
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict()
             }, os.path.join(args.dir_path, 'outputs/models/')  + res_name  + '_epoch_' +str(epoch))
 
+    elif args.save_models == 2:
+        models = os.listdir(os.path.join(args.dir_path, 'outputs/models/') )
+        for mod in models:
+            if res_name in mod:
+                os.remove(os.path.join(args.dir_path, 'outputs/models/')  + mod)
+        torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+        }, os.path.join(args.dir_path, 'outputs/models/')  + res_name  + '_epoch_' +str(epoch))
+        
+    elif args.save_models == 3:
+            save_latest(model, optimizer, epoch, res_name, args)
 
 
-      if args.save_anomaly_scores ==1 :
-          df = df.sort_values(by='centre_mean', ascending = False).reset_index(drop=True)
-          df.to_csv(os.path.join(args.dir_path, 'outputs/dfs/') + res_name  + '_epoch_' +str(epoch))
+
+    if args.save_anomaly_scores ==1 :
+        df = df.sort_values(by='centre_mean', ascending = False).reset_index(drop=True)
+        df.to_csv(os.path.join(args.dir_path, 'outputs/dfs/') + res_name  + '_epoch_' +str(epoch))
 
 
 def create_patches(features, padding,patchsize, stride):

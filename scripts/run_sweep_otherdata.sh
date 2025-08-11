@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 62:00:00
+#SBATCH -t 72:00:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Experiment_STData_SmallerIMG
@@ -33,13 +33,14 @@ singularity exec --nv --no-home \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
   --eval_epoch 1 \
-  --save_models 2 \
+  --save_models 3 \
   --model_name mod_smallimg \
   --use_wandb 1 \
   --train_ss 1 \
   --stage2 0 \
   --stage3 0 \
   --stage_severe_pred 0 \
-  --wandb_agent compvis_cz/SS-Fewsome/pap7rxwv \
-  --sweep_count 500 \
+  --wandb_agent compvis_cz/SS-Fewsome/jm77vczh \
+  --sweep_count 50 \
+  --seed 1001 \
  

@@ -24,5 +24,6 @@ singularity exec --nv --no-home \
   --dir_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
-  --model_name mod_st \
+  --model_name mod_smallimg \
+  --lr 1e-06 \
   --feature_save_path '/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/outputs/features' \

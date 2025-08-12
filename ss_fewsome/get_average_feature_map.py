@@ -30,8 +30,9 @@ def average_seeded_features(
     # find all the seed‐specific folders for this model+epoch
     seed_dirs = [
         d for d in os.listdir(base_dir)
-        if (model_prefix in d) 
+        if (f"{model_prefix}_" in d)
         and (f'epoch_{nepoch}' in d)
+        and (f'lr_{str(args.lr)}' in d)
         and any(f'seed_{s}' in d for s in seeds)
     ]
     if not seed_dirs:

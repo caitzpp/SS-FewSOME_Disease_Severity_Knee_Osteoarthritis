@@ -70,7 +70,7 @@ if __name__=="__main__":
             # if on_test_set:
             #     model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" in f) & (str(NEPOCH) in f)]
             # else:
-            model_name = [f for f in models if (mod_prefix in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f)]
+            model_name = [f for f in models if (f"{mod_prefix}_" in f) & (f"seed_{seed}" in f) & ("on_test_set" not in f) & (str(NEPOCH) in f) & (f"lr_{str(args.lr)}" in f)]
             if len(model_name)==1:
                 model_name = str(model_name[0])
             elif len(model_name)>1:
@@ -115,8 +115,8 @@ if __name__=="__main__":
         transform = transforms.Compose([
             transforms.Resize((224, 224)),  # match input size for AlexNet
             transforms.ToTensor(),
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
-            #                     std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],  # standard ImageNet normalization
+                                std=[0.229, 0.224, 0.225]),
         ])
 
         #load data

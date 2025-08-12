@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 72:00:00
+#SBATCH -t 12:00:00
 #SBATCH --gpus=1
 #SBATCH --mem=32G
 #SBATCH --job-name=Experiment_STData_SmallerIMG
@@ -40,7 +40,7 @@ singularity exec --nv --no-home \
   --stage2 0 \
   --stage3 0 \
   --stage_severe_pred 0 \
-  --wandb_agent compvis_cz/SS-Fewsome/jm77vczh \
-  --sweep_count 50 \
+  --wandb_agent compvis_cz/SS-Fewsome/q9r3q4pd \
+  --sweep_count 20 \
   --seed 1001 \
  

@@ -1,28 +1,30 @@
 program: /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py
 project: SS-Fewsome
-name: test_sweep2
-method: bayes
+name: final_sweep2
+method: grid
 metric:
   name: train_loss
   goal: minimize
-early_terminate:
-  type: hyperband
-  min_iter: 6
+# early_terminate:
+#   type: hyperband
+#   min_iter: 6
 parameters:
   # --- Adam ---
   lr:
-    distribution: log_uniform
-    min: 0.00001
-    max: 0.003
+    values: [0.000001]
+    # distribution: log_uniform
+    # min: 0.00001
+    # max: 0.003
   beta1:
-    values: [0.85, 0.9, 0.93, 0.95]
+    values: [0.85, 0.95]
   beta2:
-    values: [0.99, 0.995, 0.999]
+    values: [0.999, 0.99, 0.9]
   eps:
-    values: [1e-8, 1e-7, 1e-6]
+    values: [1e-6, 1e-8]
   # grad_clip:    # 0 turns it off
   #   values: [0, 0.5, 1.0]
   weight_decay:
-    distribution: log_uniform
-    min: 0.000001
-    max: 0.003
+    values: [0.1]
+    # distribution: log_uniform
+    # min: 0.000001
+    # max: 0.003

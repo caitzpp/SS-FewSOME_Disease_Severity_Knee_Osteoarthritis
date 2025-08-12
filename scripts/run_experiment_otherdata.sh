@@ -1,8 +1,8 @@
 #!/bin/bash -l
 #SBATCH -p performance
-#SBATCH -t 62:00:00
+#SBATCH -t 6:00:00
 #SBATCH --gpus=1
-#SBATCH --mem=32G
+#SBATCH --mem=16G
 #SBATCH --job-name=Experiment_STData_SmallerIMG
 #SBATCH --output=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Logs/training_%j.out     # Save stdout to file
 #SBATCH --error=/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/Logs/Errors/training_%j.err      # Save stderr to file
@@ -26,10 +26,15 @@ singularity exec --nv --no-home \
   --device cuda \
   --eval_epoch 1 \
   --save_models 2 \
-  --model_name mod_smallimg \
-  --use_wandb 1 \
+  --model_name mod_smallimg2 \
+  --use_wandb 0 \
   --train_ss 1 \
   --stage2 0 \
   --stage3 0 \
   --stage_severe_pred 0 \
-  --seed 1001 \
+  --lr 0.0005 \
+  --bs 1 \
+  --weight_decay 0.0001 \
+  --beta1 0.85 \
+  --beta2 0.999 \
+  --eps 1e-08

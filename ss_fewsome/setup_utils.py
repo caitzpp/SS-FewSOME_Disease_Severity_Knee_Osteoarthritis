@@ -28,6 +28,7 @@ def parse_arguments():
     parser.add_argument('--augmentations', type=str, default="crop, cutpaste")
     parser.add_argument('--normal_augs', type=str, default="sharp, bright, jitter")
     parser.add_argument('--seed', type=int, default=None)
+    parser.add_argument('--use_same_image', type=bool, default=False)
 
     #path of directory
     parser.add_argument('--dir_path', type=str, default='/home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome')

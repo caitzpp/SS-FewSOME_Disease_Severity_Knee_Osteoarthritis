@@ -14,7 +14,7 @@ class oa(data.Dataset):
 
 
     def __init__(self, root: str,
-            task, stage='ss', N=0, shots=0, semi=0, self_supervised=0, num_ss=0, augmentations='', normal_augs ='', train_info_path = '', seed= 0, pseudo_label_ids=None, norm_pseudo_label=None):
+            task, stage='ss', N=0, shots=0, semi=0, self_supervised=0, num_ss=0, augmentations='', normal_augs ='', train_info_path = '', seed= 0, pseudo_label_ids=None, norm_pseudo_label=None, use_same_image=False):
         super().__init__()
         self.paths = []
         self.targets=[]
@@ -29,6 +29,7 @@ class oa(data.Dataset):
         self.num_ss = num_ss
         self.augmentations=augmentations
         self.normal_augs = normal_augs
+        self.use_same_image = use_same_image
 
         self.augmentations = self.augmentations.split(', ')
         self.normal_augs=self.normal_augs.split(', ')
@@ -51,6 +52,11 @@ class oa(data.Dataset):
                 self.targets = self.targets + ([0]*len(train_ids))
                 self.paths2 = self.paths2 + [os.path.join(root, 'train', ids) for ids in train_ids]
                 self.targets2 = self.targets2 + ([0]*len(train_ids))
+            
+            # elif stage =='sim':
+            #     seed_file = 'train_seed_' + str(seed) +'.csv'
+            #     train_ids = pd.read_csv(os.path.join(train_info_path, seed_file)).iloc[:,2].tolist()
+            #     self.paths = self.paths + [os.path.join(root, 'train', ids) for ids in train_ids]
 
 
             if pseudo_label_ids is not None:
@@ -124,6 +130,7 @@ class oa(data.Dataset):
             try:
                 img = Image.open(self.paths2[index]).resize((224, 224), Image.BILINEAR)
                 #img = Image.open(self.paths2[index])
+                print("Index larger than len paths: ", self.paths2[index])
             except Exception as e:
                 print(f"[ERROR] Failed to load image at index {index}: {self.paths2[index]}")
                 raise e
@@ -134,6 +141,7 @@ class oa(data.Dataset):
             target = torch.FloatTensor([self.targets[index]])
             try:
                 img = Image.open(self.paths[index]).resize((224, 224), Image.BILINEAR)
+                # print("Path for img1: ", self.paths[index])
 
                 #img = Image.open(self.paths[index])
             except Exception as e:
@@ -141,8 +149,9 @@ class oa(data.Dataset):
                 raise e
             img = torch.FloatTensor(np.asarray(img ).copy() ) / 255
             file=self.paths[index]
+            # print(f"file: {file}, target: {target}")
 
-
+        index_img = index
 
         orig_label = target
         img = torch.stack((img,img,img),0)
@@ -167,7 +176,10 @@ class oa(data.Dataset):
 
             else:
                 ind = random.sample(range(0, len(self.targets)+self.num_ss), 1)[0]
-
+                # try:
+                #     print(self.paths[ind])
+                # except IndexError:
+                #     print(f"[ERROR] Index {ind} is out of bounds for paths with length {len(self.paths)}")
 
             c=1
             while (ind == index):
@@ -204,7 +216,12 @@ class oa(data.Dataset):
                 if ind >= len(self.targets):
                     target2 = torch.FloatTensor([1])
                     i2=random.sample(range(0, len(self.targets)), 1)[0]
+
+                    if self.use_same_image:
+                        i2 = index_img
+                        target2 = target
                     try:
+                        # print("Path for image 2: ", self.paths[i2])
                         img2 = Image.open(self.paths[i2]).resize((224, 224), Image.BILINEAR)
 
                         #img2 = Image.open(self.paths[i2])
@@ -215,9 +232,14 @@ class oa(data.Dataset):
                     img2 = transform_function(self.augmentations, img2)
 
                 else:
+                    
                     target2 = torch.FloatTensor([self.targets[ind]])
+                    if self.use_same_image:
+                        ind = index_img
+                        target2 = target
                     try:
                         img2 = Image.open(self.paths[ind]).resize((224, 224), Image.BILINEAR)
+                        # print("Path for image 2 using ind: ", self.paths[ind])
 
                         #img2 = Image.open(self.paths[ind])
                     except Exception as e:

@@ -1,7 +1,7 @@
 program: /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py
-project: SS-Fewsome
-name: final_sweep2
-method: grid
+project: SS-Fewsome-SameData
+name: sweep1
+method: random
 metric:
   name: train_loss
   goal: minimize
@@ -11,7 +11,7 @@ metric:
 parameters:
   # --- Adam ---
   lr:
-    values: [0.000001]
+    values: [0.000001, 0.00001, 0.0001, 0.001]
     # distribution: log_uniform
     # min: 0.00001
     # max: 0.003
@@ -20,11 +20,11 @@ parameters:
   beta2:
     values: [0.999, 0.99, 0.9]
   eps:
-    values: [1e-6, 1e-8]
+    values: [1e-6, 1e-8, 1e-10]
   # grad_clip:    # 0 turns it off
   #   values: [0, 0.5, 1.0]
   weight_decay:
-    values: [0.1]
+    values: [0.1, 0.01, 0.001, 0.0001, 0.0]
     # distribution: log_uniform
     # min: 0.000001
     # max: 0.003

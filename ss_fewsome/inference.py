@@ -68,3 +68,18 @@ if __name__ == '__main__':
         for subdir in stage_subdirs:
             path = os.path.join(base_output_dir, subdir, stage)
             os.makedirs(path, exist_ok=True)
+
+
+
+#             import torch
+# import pandas as pd
+# import numpy as np
+
+# N = mat_dists.shape[0]
+# pairs = []
+# for i in range(N):
+#     for j in range(N):
+#         if i < j:
+#             pairs.append((i, j, mat_dists[i, j-1].item(), labels[i] == labels[j]))
+
+# df = pd.DataFrame(pairs, columns=['i', 'j', 'distance', 'same_label'])

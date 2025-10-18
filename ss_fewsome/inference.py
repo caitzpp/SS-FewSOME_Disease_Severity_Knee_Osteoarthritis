@@ -31,11 +31,14 @@ patches = True
 
 
 
-def inference(args, model_path, N, model_name, num_ss, patches, seed, shots, semi, self_supervised,lr = 1e-6, bs = 1,
+def inference(args, model_path, model_checkpoint, N, model_name, num_ss, patches, seed, shots, semi, self_supervised,lr = 1e-6, bs = 1,
            beta1 = 0.9, beta2 = 0.999, n_eps = 1e-08, weight_decay = 0.1,
            metric = 'centre_mean'):
     if args.task == 'all':
         model = ALEXNET_nomax_pre().to(args.device)
+        model.load_state_dict(model_checkpoint['model_state_dict'])
+        print("Model loaded for all task inference")
+        sys.stdout.flush()
         dataset = oa(args.data_path, task = args.task)
         train_dataset =  oa(args.data_path, task='train', stage='ss', N = N, 
                             shots = shots, semi = semi, 
@@ -49,6 +52,9 @@ def inference(args, model_path, N, model_name, num_ss, patches, seed, shots, sem
 
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay,
                          betas=(beta1, beta2), eps=n_eps)
+    optimizer.load_state_dict(model_checkpoint['optimizer_state_dict'])
+    print("Optimizer loaded")
+    sys.stdout.flush()
     train_indexes = list(range(0, train_dataset.__len__()))
     print(f"Length Train Dataset {train_dataset.__len__()}")
     criterion = ContrastiveLoss(args.device)
@@ -141,12 +147,35 @@ if __name__ == '__main__':
     num_ss = args.ss_N
 
     for seed in seeds:
-        model_name = f'ss_training_{args.model_name}_bs_{args.bs}_task_test_lr_{str(args.lr)}_N_30_seed_{seed}_epoch_{TRAIN_PLATEAU_EPOCH}'
-        model_p = os.path.join(model_path, model_name)
+        print(f"Running inference for seed {seed}")
+        sys.stdout.flush()
 
-        checkpoint = torch.load(model_p, map_location=args.device)
-        print(checkpoint.keys())
-        break
-        # inference(args, model_path,N, model_name, num_ss, patches, seed, shots, semi, self_supervised, num_ss, seed,lr = 1e-6, bs = 1,
-        #    beta1 = 0.9, beta2 = 0.999, n_eps = 1e-08, weight_decay = 0.1,
-        #    metric = 'centre_mean')
+        try:
+            model_name = f'ss_training_{args.model_name}_bs_{args.bs}_task_test_lr_{str(args.lr)}_N_30_seed_{seed}_epoch_{TRAIN_PLATEAU_EPOCH}'
+            model_p = os.path.join(model_path, model_name)
+
+            checkpoint = torch.load(model_p, map_location=args.device)
+        except FileNotFoundError:
+            print(f"Model file not found: {model_p}.")
+            try:
+                model_name = f'ss_training_{args.model_name}_bs_{args.bs}_task_test_lr_{str(args.lr)}_N_30_seed_{seed}_latest.pt'
+                model_p = os.path.join(model_path, model_name)
+
+                checkpoint = torch.load(model_p, map_location=args.device)
+            except Exception as e:
+                print(f"CRITICAL ERROR DURING MODEL LOADING FOR SEED {seed}.")
+                print(e)
+                sys.stdout.flush()
+                sys.exit(1)
+
+        inference(args, model_path, N=N, model_name=model_name,model_checkpoint=checkpoint, num_ss=num_ss, patches=patches, 
+                  shots=shots, semi=semi, self_supervised=self_supervised, 
+                  seed=seed, lr=args.lr, bs=args.bs,
+           beta1=args.beta1, beta2=args.beta2, n_eps=1e-08, weight_decay=0.1,
+           metric='centre_mean')
+        
+    stage1_path_to_anom_scores = os.path.join(args.dir_path, 'outputs/dfs_test/')
+    stage1_path_to_logs = os.path.join(args.dir_path, 'outputs/logs_test/')
+    print_ensemble_results_inference(stage1_path_to_anom_scores, TRAIN_PLATEAU_EPOCH, stages[0], 'centre_mean', args.meta_data_dir, args.get_oarsi_results, model_name_prefix = args.model_name, lr = args.lr)
+    sys.stdout.flush()
+

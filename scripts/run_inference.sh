@@ -25,6 +25,7 @@ singularity exec --nv --no-home \
   --train_ids_path /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/meta2/ \
   --device cuda \
   --eval_epoch 1 \
+  --task all \
   --save_models 0 \
   --model_name mod_st \
   --use_wandb 0 \

@@ -230,17 +230,17 @@ def write_results_inference(df, results, res_name, logs_df, model, optimizer, ar
 
 
     try:
-        logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/{}').format(res_name))
+        logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs_test/{}').format(res_name))
     except:
         pass
 
-    results.to_csv(os.path.join(args.dir_path, 'outputs/results/') + res_name  + '_all' )
+    results.to_csv(os.path.join(args.dir_path, 'outputs/results_test/') + res_name  + '_all' )
 
     if oarsi_res is not None:
-        oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi/')  + res_name  + '_all')
+        oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi_test/')  + res_name  + '_all')
     if args.save_anomaly_scores ==1 :
         df = df.sort_values(by='centre_mean', ascending = False).reset_index(drop=True)
-        df.to_csv(os.path.join(args.dir_path, 'outputs/dfs/') + res_name  + '_all')
+        df.to_csv(os.path.join(args.dir_path, 'outputs/dfs_test/') + res_name  + '_all')
 
 def write_results(df, results, res_name, logs_df, epoch, model, optimizer, ref_std, args, oarsi_res=None):
 
@@ -355,6 +355,18 @@ def print_ensemble_results(path_to_anom_scores, epoch, stage, metric, meta_data_
     #     files = [file for file in files_total if (('seed_' + str(seed) ) in file) & ('on_test_set' in file ) & (model_name_prefix in file)]
     else:
         files = [file for file in files_total if (('epoch_' + str(epoch) ) in file) & ('on_test_set' in file ) & (model_name_prefix in file)]
+
+    df = create_scores_dataframe(path_to_anom_scores, files, metric)
+    ensemble_results(df, stage, metric, meta_data_dir, get_oarsi_results)
+
+def print_ensemble_results_inference(path_to_anom_scores, epoch, stage, metric, meta_data_dir, get_oarsi_results, model_name_prefix, lr ):
+    print('---------------------------------------------------- For stage ' + stage + '----------------------------------------------------')
+    print('-----------------------------RESULTS ON DATA---------------------------')
+    print('Warning: the results on unlabelled data includes the pseudo labels i.e. for stages that are not SSL and severe predictor, the model was trained on the psuedo labels which are also included in the unlabelled results')
+
+    files_total = os.listdir(path_to_anom_scores)
+    
+    files = [file for file in files_total if (('_all' in file ) & (model_name_prefix in file) & ('lr_' + str(lr) in file))]
 
     df = create_scores_dataframe(path_to_anom_scores, files, metric)
     ensemble_results(df, stage, metric, meta_data_dir, get_oarsi_results)

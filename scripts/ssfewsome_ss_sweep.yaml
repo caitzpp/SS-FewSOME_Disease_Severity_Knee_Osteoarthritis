@@ -1,7 +1,7 @@
 program: /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py
-project: SS-Fewsome-SameData
+project: SS-Fewsome-SmallImages
 name: sweep1
-method: random
+method: bayes
 metric:
   name: train_loss
   goal: minimize
@@ -9,22 +9,29 @@ metric:
 #   type: hyperband
 #   min_iter: 6
 parameters:
-  # --- Adam ---
-  lr:
-    values: [0.000001, 0.00001, 0.0001, 0.001]
-    # distribution: log_uniform
-    # min: 0.00001
-    # max: 0.003
-  beta1:
-    values: [0.85, 0.95]
   beta2:
-    values: [0.999, 0.99, 0.9]
+    max: 0.9999
+    min: 0.8
+    distribution: uniform
+  beta1:
+    max: 0.9999
+    min: 0.8
+    distribution: uniform
   eps:
-    values: [1e-6, 1e-8, 1e-10]
-  # grad_clip:    # 0 turns it off
-  #   values: [0, 0.5, 1.0]
+    values:
+      - "1e-8"
+      - "1e-6"
+      - "1e-4"
+    distribution: categorical
+  lr:
+    max: 0.01
+    min: 5e-5
+    distribution: uniform
   weight_decay:
-    values: [0.1, 0.01, 0.001, 0.0001, 0.0]
-    # distribution: log_uniform
-    # min: 0.000001
-    # max: 0.003
+      max: 0.2
+      min: 0
+      distribution: uniform
+  epochs:
+    max: 800
+    min: 200
+    distribution: int_uniform

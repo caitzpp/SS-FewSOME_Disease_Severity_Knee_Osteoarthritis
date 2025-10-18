@@ -34,13 +34,13 @@ singularity exec --nv --no-home \
   --device cuda \
   --eval_epoch 1 \
   --save_models 3 \
-  --model_name mod_smallimg \
+  --model_name mod_smallimg3 \
   --use_wandb 1 \
   --train_ss 1 \
   --stage2 0 \
   --stage3 0 \
   --stage_severe_pred 0 \
-  --wandb_agent compvis_cz/SS-Fewsome/q9r3q4pd \
-  --sweep_count 20 \
+  --wandb_agent compvis_cz/SS-Fewsome-SmallImages/as9f67zy \
+  --sweep_count 100 \
   --seed 1001 \
  

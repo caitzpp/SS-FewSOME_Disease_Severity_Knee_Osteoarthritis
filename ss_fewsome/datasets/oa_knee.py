@@ -106,6 +106,25 @@ class oa(data.Dataset):
                     for f in val_files:
                         self.paths.append(os.path.join(root, 'test', folder, f))
                         self.targets.append(int(folder))
+        elif task == 'all':
+            folders = os.listdir(os.path.join(root, 'train'))
+            for folder in folders:
+                    val_files = os.listdir(os.path.join(root, 'train', folder))
+                    for f in val_files:
+                        self.paths.append(os.path.join(root, 'train', folder, f))
+                        self.targets.append(int(folder))
+            folders = os.listdir(os.path.join(root, 'val'))
+            for folder in folders:
+                    val_files = os.listdir(os.path.join(root, 'val',folder))
+                    for f in val_files:
+                        self.paths.append(os.path.join(root,'val', folder, f))
+                        self.targets.append(int(folder))
+            folders = os.listdir(os.path.join(root, 'test'))
+            for folder in folders:
+                    val_files = os.listdir(os.path.join(root, 'test', folder))
+                    for f in val_files:
+                        self.paths.append(os.path.join(root, 'test', folder, f))
+                        self.targets.append(int(folder))
 
 
 

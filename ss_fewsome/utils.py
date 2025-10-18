@@ -226,6 +226,22 @@ def save_latest(model, optimizer, epoch, res_name, args):
 
     torch.save(payload, model_path)
 
+def write_results_inference(df, results, res_name, logs_df, model, optimizer, args, oarsi_res=None):
+
+
+    try:
+        logs_df.to_csv(os.path.join(args.dir_path, 'outputs/logs/{}').format(res_name))
+    except:
+        pass
+
+    results.to_csv(os.path.join(args.dir_path, 'outputs/results/') + res_name  + '_all' )
+
+    if oarsi_res is not None:
+        oarsi_res.to_csv(os.path.join(args.dir_path, 'outputs/oarsi/')  + res_name  + '_all')
+    if args.save_anomaly_scores ==1 :
+        df = df.sort_values(by='centre_mean', ascending = False).reset_index(drop=True)
+        df.to_csv(os.path.join(args.dir_path, 'outputs/dfs/') + res_name  + '_all')
+
 def write_results(df, results, res_name, logs_df, epoch, model, optimizer, ref_std, args, oarsi_res=None):
 
 
@@ -258,6 +274,8 @@ def write_results(df, results, res_name, logs_df, epoch, model, optimizer, ref_s
         
     elif args.save_models == 3:
             save_latest(model, optimizer, epoch, res_name, args)
+    elif args.save_models ==0:
+        pass
 
 
 

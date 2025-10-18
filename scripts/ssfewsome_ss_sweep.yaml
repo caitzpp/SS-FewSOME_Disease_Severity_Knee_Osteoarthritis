@@ -1,5 +1,5 @@
 program: /home2/c.zuppinger/VT9_SSFewSOME/SS-FewSOME_Disease_Severity_Knee_Osteoarthritis/ss_fewsome/main.py
-project: SS-Fewsome-SmallImages
+project: SS-Fewsome-NormalImg
 name: sweep1
 method: bayes
 metric:
